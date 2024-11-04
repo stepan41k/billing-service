@@ -3,6 +3,7 @@ module github.com/stepan41k/testServer
 go 1.21.1
 
 require (
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

@@ -79,7 +79,7 @@ func (repo *PGRepo) UpdateBook(item string, newBook models.Book)(models.Book, er
 }
 
 func (repo * PGRepo) DeleteBook(name string) (error) {
-	_, err := repo.pool.Query(context.Background(), `
+	_, err := repo.pool.Exec(context.Background(), `
 		DELETE FROM books
 		WHERE name = $1
 		`, name)
