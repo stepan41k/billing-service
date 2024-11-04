@@ -2,7 +2,7 @@ package repository
 
 import(
 	"context"
-	"github.com/stepan41k/lessonPostgres/pkg/models"
+	"github.com/stepan41k/testServer/pkg/models"
 )
 
 func (repo PGRepo) CreateAuthor(newAuthor models.Author) (id int, err error) {

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"testing"
-	"github.com/stepan41k/lessonPostgres/pkg/models"
+	"github.com/stepan41k/testServer/pkg/models"
 )
 
 const connStr = "postgres://postgres:admin@localhost:5432/cources"

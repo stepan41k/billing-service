@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/stepan41k/lessonPostgres/pkg/models"
-	"github.com/stepan41k/lessonPostgres/pkg/repository"
+	"github.com/stepan41k/testServer/pkg/models"
+	"github.com/stepan41k/testServer/pkg/repository"
 )
 
 const connStr = "postgres://postgres:admin@localhost:5432/cources"

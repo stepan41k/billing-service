@@ -1,4 +1,4 @@
-module github.com/stepan41k/lessonPostgres
+module github.com/stepan41k/testServer
 
 go 1.21.1
 
