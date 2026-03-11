@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_MOCK: "true"       # ← убрать или поменять на "false" когда бэк готов
+    container_name: billing-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    networks:
+      - billing-net
+
+networks:
+  billing-net:
+    name: billing-net
+    driver: bridge
