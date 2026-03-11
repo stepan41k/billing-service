@@ -1,0 +1,11 @@
+env: "local"
+
+http_server:
+  addr: "127.0.0.1"
+  port: "8080"
+  timeout: 10s
+  idle_timeout: 60s
+
+token:
+  access_token_ttl: 15m
+  refresh_token_ttl: 43200m
