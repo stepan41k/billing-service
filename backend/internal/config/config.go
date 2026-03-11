@@ -11,22 +11,22 @@ import (
 
 type Config struct {
 	Env          string       `yaml:"env"`
-	serverConfig serverConfig `yaml:"http_server"`
-	tokenConfig  tokenConfig
+	ServerConfig ServerConfig `yaml:"http_server"`
+	TokenConfig  TokenConfig
 }
 
-type serverConfig struct {
-	addr        string        `yaml:"addr"`
-	port        string        `yaml:"port"`
-	timeout     time.Duration `yaml:"timeout"`
-	idleTimeout time.Duration `yaml:"time.Duration"`
+type ServerConfig struct {
+	Addr        string        `yaml:"addr"`
+	Port        string        `yaml:"port"`
+	Timeout     time.Duration `yaml:"timeout"`
+	IdleTimeout time.Duration `yaml:"time.Duration"`
 }
 
-type tokenConfig struct {
-	accessTokenTTL  time.Duration `yaml:"access_token_ttl"`
-	refreshTokenTTL time.Duration `yaml:"refresh_token_ttl"`
-	accessSecret    []byte        `yaml:"-"`
-	refreshSecret   []byte        `yaml:"-"`
+type TokenConfig struct {
+	AccessTokenTTL  time.Duration `yaml:"access_token_ttl"`
+	RefreshTokenTTL time.Duration `yaml:"refresh_token_ttl"`
+	AccessSecret    []byte        `yaml:"-"`
+	RefreshSecret   []byte        `yaml:"-"`
 }
 
 func MustLoad() *Config {
