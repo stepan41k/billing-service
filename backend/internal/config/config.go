@@ -45,7 +45,7 @@ func (f *FireBird) DSN() string {
 		f.Port,
 		f.Name,
 		f.User,
-		f.Password
+		f.Password,
 	)
 }
 
