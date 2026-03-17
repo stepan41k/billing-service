@@ -1,10 +1,16 @@
 env: "local"
 
 http_server:
-  addr: "127.0.0.1"
+  host: "localhost"
   port: "8080"
   timeout: 10s
   idle_timeout: 60s
+
+firebird:
+  host: "localhost"
+  port: 2020
+  name: "test"
+  user: "user"
 
 token:
   access_token_ttl: 15m

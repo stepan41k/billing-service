@@ -1,26 +1,39 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/stepan41k/billing-service/internal/repository/firebird"
-	"github.com/stepan41k/testServer/pkg/api"
-	"github.com/stepan41k/testServer/pkg/repository"
+	"github.com/stepan41k/billing-service/internal/app"
+	"github.com/stepan41k/billing-service/internal/config"
+	"github.com/stepan41k/billing-service/internal/logger"
+	"go.uber.org/zap"
 )
 
 func main() {
-	
-	connStr := fmt.Sprintf()
+	cfg := config.MustLoad()
+	logger, err := logger.New(logger.Env(cfg.Env))
+	if err != nil {
+		log.Fatalf("failed initilizate logger: %s", err.Error())
+	}
 
-	db := firebird.NewDB()
-	handler := 
-	service
-	router := chi.NewRouter()
+	application, err := app.New(cfg, logger)
+	if err != nil {
+		logger.Fatal("failed to initialize application", zap.Error(err))
+	}
 
-	router.Route("api", func(r chi.Router) {
-		r.Post("/login", )
-		r.Post("/profile")
-	})
+	go application.Run()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	signal := <-stop
+	logger.Debug("os signal", zap.String("signal", signal.String()))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	application.Stop(ctx)
 }

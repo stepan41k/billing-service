@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -11,22 +12,41 @@ import (
 
 type Config struct {
 	Env          string       `yaml:"env"`
-	serverConfig serverConfig `yaml:"http_server"`
-	tokenConfig  tokenConfig
+	ServerConfig ServerConfig `yaml:"http_server"`
+	FireBird     FireBird     `yaml:"firebird"`
+	TokenConfig  TokenConfig  `yaml:"token"`
 }
 
-type serverConfig struct {
-	addr        string        `yaml:"addr"`
-	port        string        `yaml:"port"`
-	timeout     time.Duration `yaml:"timeout"`
-	idleTimeout time.Duration `yaml:"time.Duration"`
+type FireBird struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `env:"DB_PASSWORD"`
 }
 
-type tokenConfig struct {
-	accessTokenTTL  time.Duration `yaml:"access_token_ttl"`
-	refreshTokenTTL time.Duration `yaml:"refresh_token_ttl"`
-	accessSecret    []byte        `yaml:"-"`
-	refreshSecret   []byte        `yaml:"-"`
+type ServerConfig struct {
+	Host        string        `yaml:"host"`
+	Port        string        `yaml:"port"`
+	Timeout     time.Duration `yaml:"timeout"`
+	IdleTimeout time.Duration `yaml:"time.Duration"`
+}
+
+type TokenConfig struct {
+	AccessTokenTTL  time.Duration `yaml:"access_token_ttl"`
+	RefreshTokenTTL time.Duration `yaml:"refresh_token_ttl"`
+	AccessSecret    []byte        `yaml:"-"`
+	RefreshSecret   []byte        `yaml:"-"`
+}
+
+func (f *FireBird) DSN() string {
+	return fmt.Sprintf("%s/%d:%s?user=%s&password=%s",
+		f.Host,
+		f.Port,
+		f.Name,
+		f.User,
+		f.Password,
+	)
 }
 
 func MustLoad() *Config {
@@ -49,11 +69,16 @@ func MustLoad() *Config {
 		log.Fatalf("cannot read config file: %s", err.Error())
 	}
 
-	cfg.tokenConfig.accessSecret = []byte(mustGetEnv("acessSecret"))
-	cfg.tokenConfig.refreshSecret = []byte(mustGetEnv("refreshSecret"))
+	cfg.TokenConfig.AccessSecret = []byte(mustGetEnv("ACCESS_SECRET"))
+	cfg.TokenConfig.RefreshSecret = []byte(mustGetEnv("REFRESH_SECRET"))
 
 	return &cfg
 }
+
+func (s *ServerConfig) Addr() string {
+	return s.Host + ":" + s.Port
+}
+
 func mustGetEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
