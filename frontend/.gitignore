@@ -1,0 +1,4 @@
+*.env.local
+*.sh
+*.DS_Store
+*.bak

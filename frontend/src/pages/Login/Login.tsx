@@ -1,44 +1,87 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '../../hooks/useAuth';
-import { NetworkBackground } from '../../components/NetworkBackground';
-import styles from './Login.module.css';
+import {
+  useState,
+  useCallback,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { motion, type Variants } from "framer-motion";
+import { useAuth } from "../../hooks/useAuth";
+import { NetworkBackground } from "../../components/NetworkBackground";
+import styles from "./Login.module.css";
 
-const pageVariants = {
+const pageVariants: Variants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.28, ease: 'easeOut' } },
-  exit:    { opacity: 0, scale: 1.012, filter: 'blur(3px)',
-             transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } },
+  animate: {
+    opacity: 1,
+    transition: { duration: 0.28, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    scale: 1.012,
+    filter: "blur(3px)",
+    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
+  },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   initial: { opacity: 0, y: 18, scale: 0.97 },
-  animate: { opacity: 1, y: 0,  scale: 1,
-    transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] } },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] },
+  },
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   initial: {},
-  animate: { transition: { staggerChildren: 0.065, delayChildren: 0.12 } },
+  animate: {
+    transition: { staggerChildren: 0.065, delayChildren: 0.12 },
+  },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.22, ease: "easeOut" },
+  },
 };
+
+interface LoginForm {
+  login: string;
+  password: string;
+}
 
 export default function Login() {
-  const [login, setLogin]       = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState<LoginForm>({ login: "", password: "" });
   const { login: doLogin, loading, error } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const ok = await doLogin({ login, password });
-    if (ok) navigate('/profile');
-  };
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setForm(prev => ({ ...prev, [name]: value }));
+    },
+    [],
+  );
+
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      if (!form.login || !form.password || loading) return;
+
+      const ok = await doLogin({ login: form.login, password: form.password });
+      if (ok) {
+        navigate("/profile", { replace: true });
+      }
+    },
+    [doLogin, form.login, form.password, loading, navigate],
+  );
+
+  const disabled = loading || !form.login || !form.password;
 
   return (
     <motion.div
@@ -59,58 +102,70 @@ export default function Login() {
         noValidate
       >
         <motion.div
+          className={styles.fields}
           variants={containerVariants}
           initial="initial"
           animate="animate"
-          className={styles.fields}
         >
-          <motion.h1 className={styles.title} variants={itemVariants}>Личный кабинет</motion.h1>
+          <motion.h1 className={styles.title} variants={itemVariants}>
+            Вход в личный кабинет
+          </motion.h1>
 
           <motion.label className={styles.field} variants={itemVariants}>
             <span>Логин</span>
-            <input type="text" autoComplete="username"
-              value={login} onChange={(e) => setLogin(e.target.value)}
-              required disabled={loading} />
+            <input
+              name="login"
+              type="text"
+              autoComplete="username"
+              value={form.login}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
           </motion.label>
 
           <motion.label className={styles.field} variants={itemVariants}>
             <span>Пароль</span>
-            <input type="password" autoComplete="current-password"
-              value={password} onChange={(e) => setPassword(e.target.value)}
-              required disabled={loading} />
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
           </motion.label>
 
           {error && (
-            <motion.p className={styles.error}
-              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.16 }}>
+            <motion.p
+              className={styles.error}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.16 }}
+            >
               {error}
             </motion.p>
           )}
 
           <motion.button
-            type="submit" className={styles.btn}
-            disabled={loading || !login || !password}
-            variants={itemVariants} whileTap={{ scale: 0.97 }}>
-            {loading ? 'Вход…' : 'Войти'}
+            type="submit"
+            className={styles.btn}
+            disabled={disabled}
+            variants={itemVariants}
+            whileTap={!disabled ? { scale: 0.97 } : undefined}
+          >
+            {loading ? "Вход..." : "Войти"}
           </motion.button>
 
-          <motion.p className={styles.signature} variants={itemVariants}>Максима</motion.p>
+          <motion.p className={styles.signature} variants={itemVariants}>
+            Нет аккаунта?{" "}
+            <Link to="/register" tabIndex={disabled ? -1 : 0}>
+              Зарегистрироваться
+            </Link>
+          </motion.p>
         </motion.div>
       </motion.form>
-
-      {/* gap: 10px из .root — расстояние до кнопки */}
-      <motion.div
-        className={styles.switchWrap}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.24, delay: 0.36, ease: 'easeOut' }}
-      >
-        <Link to="/register" tabIndex={-1}>
-          <button className={styles.switchBtn} type="button">Зарегистрироваться</button>
-        </Link>
-      </motion.div>
     </motion.div>
   );
 }
-

@@ -1,40 +1,78 @@
-import { motion } from 'framer-motion';
-import { useProfile } from '../../hooks/useProfile';
-import { PageTransition } from '../../components/PageTransition';
-import { AnimatedList, itemVariants } from '../../components/AnimatedList';
-import styles from './Profile.module.css';
+import { memo } from "react";
+import { PageTransition } from "../../components/PageTransition";
+import { useProfile } from "../../hooks/useProfile";
+import styles from "./Profile.module.css";
 
-const fields = [
-  { key: 'login',        label: 'Логин' },
-  { key: 'email',        label: 'Email' },
-  { key: 'phone',        label: 'Телефон' },
-  { key: 'contract',     label: 'Договор №' },
-  { key: 'client',       label: 'Клиент ID' },
-  { key: 'lastActivity', label: 'Последний вход' },
-] as const;
-
-export default function Profile() {
+function ProfileComponent() {
   const { user, loading, error } = useProfile();
 
-  if (loading) return <div className={styles.state}>Загрузка…</div>;
-  if (error)   return <div className={`${styles.state} ${styles.error}`}>{error}</div>;
-  if (!user)   return null;
+  if (loading) {
+    return <div className={styles.state}>Загрузка профиля...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className={`${styles.state} ${styles.error}`}>
+        Ошибка загрузки профиля: {error}
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className={styles.state}>
+        Данные профиля недоступны.
+      </div>
+    );
+  }
+
+  const accessLabel = user.readOnly ? "Только просмотр" : "Полный доступ";
 
   return (
     <PageTransition>
       <div className={styles.root}>
         <h2 className={styles.heading}>Профиль</h2>
-        <AnimatedList className={styles.grid}>
-          {fields.map(({ key, label }) => (
-            <motion.div key={key} className={styles.card} variants={itemVariants}>
-              <span className={styles.fieldLabel}>{label}</span>
-              <span className={styles.value}>{String(user[key] ?? '—')}</span>
-            </motion.div>
-          ))}
-        </AnimatedList>
-        {user.readOnly && <p className={styles.badge}>Режим только для чтения</p>}
+
+        <div className={styles.grid}>
+          <section className={styles.card}>
+            <span className={styles.fieldLabel}>Логин</span>
+            <span className={styles.value}>{user.login}</span>
+
+            <span className={styles.fieldLabel}>ID аккаунта</span>
+            <span className={styles.value}>{user.id}</span>
+          </section>
+
+          <section className={styles.card}>
+            <span className={styles.fieldLabel}>Номер клиента</span>
+            <span className={styles.value}>{user.client}</span>
+
+            <span className={styles.fieldLabel}>Договор</span>
+            <span className={styles.value}>{user.contract}</span>
+          </section>
+
+          <section className={styles.card}>
+            <span className={styles.fieldLabel}>Телефон</span>
+            <span className={styles.value}>{user.phone}</span>
+
+            <span className={styles.fieldLabel}>Email</span>
+            <span className={styles.value}>{user.email}</span>
+          </section>
+
+          <section className={styles.card}>
+            <span className={styles.fieldLabel}>Режим доступа</span>
+            <span className={styles.value}>{accessLabel}</span>
+
+            <span className={styles.fieldLabel}>Последняя активность</span>
+            <span className={styles.value}>{user.lastActivity}</span>
+          </section>
+        </div>
+
+        <span className={styles.badge}>
+          Аккаунт №{user.id} - {accessLabel}
+        </span>
       </div>
     </PageTransition>
   );
 }
 
+export default memo(ProfileComponent);

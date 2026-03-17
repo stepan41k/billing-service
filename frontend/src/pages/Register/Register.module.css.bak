@@ -147,12 +147,6 @@
   text-decoration: none;
 }
 
-/* ── auth switch button (inside card) ── */
-.switchLink {
-  display: block;
-  text-decoration: none;
-}
-
 .switchBtn {
   width: 100%;
   padding: 9px;
