@@ -31,15 +31,9 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	signal := <-stop
-
-	logger.Info("os signal", zap.String("signal", signal.String()))
+	logger.Debug("os signal", zap.String("signal", signal.String()))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	if err := application.Stop(ctx); err != nil {
-		logger.Fatal("failed stop application", zap.Error(err))
-	}
-
-	logger.Info("stopped application")
+	application.Stop(ctx)
 }
