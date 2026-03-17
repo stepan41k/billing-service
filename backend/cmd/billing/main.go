@@ -1,29 +1,45 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/stepan41k/billing-service/internal/app"
+	"github.com/stepan41k/billing-service/internal/config"
 	"github.com/stepan41k/billing-service/internal/logger"
-	"github.com/stepan41k/billing-service/internal/repository/firebird"
+	"go.uber.org/zap"
 )
 
 func main() {
+	cfg := config.MustLoad()
+	logger, err := logger.New(logger.Env(cfg.Env))
+	if err != nil {
+		log.Fatalf("failed initilizate logger: %s", err.Error())
+	}
 
-	logger := logger.Init()
-	connStr := fmt.Sprintf()
+	application, err := app.New(cfg, logger)
+	if err != nil {
+		logger.Fatal("failed to initialize application", zap.Error(err))
+	}
 
-	db := firebird.NewDB()
+	go application.Run()
 
-	handler :=
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	signal := <-stop
 
-	service := 
+	logger.Info("os signal", zap.String("signal", signal.String()))
 
-	router := chi.NewRouter()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	router.Route("/api", func(r chi.Router) {
-		r.Post("/login")
-		r.Post("/profile")
-	})
+	if err := application.Stop(ctx); err != nil {
+		logger.Fatal("failed stop application", zap.Error(err))
+	}
+
+	logger.Info("stopped application")
 }
-
