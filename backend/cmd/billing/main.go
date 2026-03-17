@@ -16,7 +16,7 @@ func main() {
 		service
 	router := chi.NewRouter()
 
-	router.Route("api", func(r chi.Router) {
+	router.Route("/api", func(r chi.Router) {
 		r.Post("/login")
 		r.Post("/profile")
 	})
