@@ -49,11 +49,12 @@ func MustLoad() *Config {
 		log.Fatalf("cannot read config file: %s", err.Error())
 	}
 
-	cfg.tokenConfig.accessSecret = []byte(mustGetEnv("acessSecret"))
-	cfg.tokenConfig.refreshSecret = []byte(mustGetEnv("refreshSecret"))
+	cfg.TokenConfig.AccessSecret = []byte(mustGetEnv("acessSecret"))
+	cfg.TokenConfig.RefreshSecret = []byte(mustGetEnv("refreshSecret"))
 
 	return &cfg
 }
+
 func mustGetEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
