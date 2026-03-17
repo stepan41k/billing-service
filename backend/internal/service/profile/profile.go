@@ -1,12 +1,15 @@
 package profile
 
 import (
+	"context"
+
+	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
 
 type ProfileRepository interface {
-	Create()
-	Get()
+	Create(ctx context.Context, newCLient models.NewClient) (*models.NormalizedClient, error)
+	Get(ctx context.Context, login string) (*models.NormalizedClient, error)
 }
 
 type ProfileService struct {
@@ -21,11 +24,11 @@ func New(log *zap.Logger, profileRepository ProfileRepository) *ProfileService {
 	}	
 }
 
-func (ps *ProfileService) Get() {
+func (ps *ProfileService) Get(ctx context.Context, login string) (*models.NormalizedClient, error) {
 
 }
 
-func (ps *ProfileService) Create() {
-	
+func (ps *ProfileService) Create(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
+
 }
 
