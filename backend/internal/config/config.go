@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -36,6 +37,16 @@ type TokenConfig struct {
 	RefreshTokenTTL time.Duration `yaml:"refresh_token_ttl"`
 	AccessSecret    []byte        `yaml:"-"`
 	RefreshSecret   []byte        `yaml:"-"`
+}
+
+func (f *FireBird) DSN() string {
+	return fmt.Sprintf("%s/%d:%s?user=%s&password=%s",
+		f.Host,
+		f.Port,
+		f.Name,
+		f.User,
+		f.Password
+	)
 }
 
 func MustLoad() *Config {
