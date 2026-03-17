@@ -12,7 +12,16 @@ import (
 type Config struct {
 	Env          string       `yaml:"env"`
 	ServerConfig ServerConfig `yaml:"http_server"`
-	TokenConfig  TokenConfig
+	FireBird     FireBird     `yaml:"firebird"`
+	TokenConfig  TokenConfig  `yaml:"token"`
+}
+
+type FireBird struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `env:"DB_PASSWORD"`
 }
 
 type ServerConfig struct {

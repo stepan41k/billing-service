@@ -6,6 +6,12 @@ http_server:
   timeout: 10s
   idle_timeout: 60s
 
+firebird:
+  host: "localhost"
+  port: 2020
+  name: "test"
+  user: "user"
+
 token:
   access_token_ttl: 15m
   refresh_token_ttl: 43200m
