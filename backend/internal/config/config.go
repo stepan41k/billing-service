@@ -16,7 +16,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host        string        `yaml:"addr"`
+	Host        string        `yaml:"host"`
 	Port        string        `yaml:"port"`
 	Timeout     time.Duration `yaml:"timeout"`
 	IdleTimeout time.Duration `yaml:"time.Duration"`
@@ -49,8 +49,8 @@ func MustLoad() *Config {
 		log.Fatalf("cannot read config file: %s", err.Error())
 	}
 
-	cfg.TokenConfig.AccessSecret = []byte(mustGetEnv("acessSecret"))
-	cfg.TokenConfig.RefreshSecret = []byte(mustGetEnv("refreshSecret"))
+	cfg.TokenConfig.AccessSecret = []byte(mustGetEnv("ACCESS_SECRET"))
+	cfg.TokenConfig.RefreshSecret = []byte(mustGetEnv("REFRESH_SECRET"))
 
 	return &cfg
 }
