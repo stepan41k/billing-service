@@ -17,7 +17,7 @@ type App struct {
 
 func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 
-	// db :=
+	// repository := firebird.NewDB(cfg.FireBird.DSN())
 	// hander :=
 
 	router := chi.NewRouter()
