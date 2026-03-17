@@ -16,7 +16,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Addr        string        `yaml:"addr"`
+	Host        string        `yaml:"addr"`
 	Port        string        `yaml:"port"`
 	Timeout     time.Duration `yaml:"timeout"`
 	IdleTimeout time.Duration `yaml:"time.Duration"`
@@ -53,6 +53,10 @@ func MustLoad() *Config {
 	cfg.TokenConfig.RefreshSecret = []byte(mustGetEnv("refreshSecret"))
 
 	return &cfg
+}
+
+func (s *ServerConfig) Addr() string {
+	return s.Host + ":" + s.Port
 }
 
 func mustGetEnv(key string) string {
