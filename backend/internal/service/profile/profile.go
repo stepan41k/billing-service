@@ -2,8 +2,10 @@ package profile
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/stepan41k/billing-service/internal/domain"
 	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
@@ -31,6 +33,10 @@ func (ps *ProfileService) Get(ctx context.Context, login string) (*models.Client
 
 	client, err := ps.profileRepository.GetProfile(ctx, login)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			log.Warn("failed get client: user not found")
+			return nil, err
+		}
 		log.Error("failed to get client", zap.Error(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/stepan41k/billing-service/internal/domain"
@@ -38,6 +39,10 @@ func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 		// Use Service
 		client, err := ph.profileService.Get(r.Context(), authInfo.Login)
 		if err != nil {
+			if errors.Is(err, domain.ErrUserNotFound) {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
