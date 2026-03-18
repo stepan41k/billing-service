@@ -13,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	Login(ctx context.Context, login, password string) (*models.Session, *models.NormalizedClient, error)
+	Login(ctx context.Context, login, password string) (*models.Session, *models.Client, error)
 }
 
 type AuthHandler struct {
@@ -64,12 +64,12 @@ func (ah *AuthHandler) Login(ctx context.Context) http.HandlerFunc {
 				AccessToken:  token.AccessToken,
 				RefreshToken: token.RefreshToken,
 				Profile: ProfileClient{
-					ID:          client.ID,
-					Login:       client.Login,
-					Client:      client.Client,
-					Contract:    client.Contract,
-					PhoneNumber: client.PhoneNumber,
-					Email:       client.PhoneNumber,
+					ID:             client.ID,
+					Login:          client.Login,
+					ClientNumber:   client.ClientNumber,
+					ContractNumber: client.ContractNumber,
+					PhoneNumber:    client.PhoneNumber,
+					Email:          client.PhoneNumber,
 				},
 			},
 		)

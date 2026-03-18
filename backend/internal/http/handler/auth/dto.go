@@ -12,10 +12,10 @@ type LoginResponse struct {
 }
 
 type ProfileClient struct {
-	ID          int64  `json:"id"`
-	Login       string `json:"login"`
-	Client      string `json:"client"`
-	Contract    string `json:"contract"`
-	PhoneNumber string `json:"phone_number"`
-	Email       string `json:"email"`
+	ID             int64  `json:"id"`
+	Login          string `json:"login"`
+	ClientNumber   string `json:"client"`
+	ContractNumber string `json:"contract"`
+	PhoneNumber    string `json:"phone_number"`
+	Email          string `json:"email"`
 }

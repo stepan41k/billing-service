@@ -14,7 +14,7 @@ import (
 )
 
 type ProfileService interface {
-	GetClient(ctx context.Context, login string) (*models.NormalizedClient, error)
+	Get(ctx context.Context, login string) (*models.Client, error)
 }
 
 type AuthRepository interface {
@@ -37,7 +37,7 @@ func New(cfg config.TokenConfig, log *zap.Logger, authRepository AuthRepository,
 	}
 }
 
-func (as *AuthService) Login(ctx context.Context, login, password string) (*models.Session, *models.NormalizedClient, error) {
+func (as *AuthService) Login(ctx context.Context, login, password string) (*models.Session, *models.Client, error) {
 	const op = "service.auth.Login"
 	log := as.log.With(
 		zap.String("op", op),
@@ -61,12 +61,12 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 	}
 
 	// Get Profile Client
-	normalizedClient, err := as.profileService.GetClient(ctx, login)
+	client, err := as.profileService.Get(ctx, login)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	access, refresh, err := jwt.GenerateToken(as.cfg, normalizedClient.ID, normalizedClient.Login)
+	access, refresh, err := jwt.GenerateToken(as.cfg, client.ID, client.Login)
 	if err != nil {
 		log.Error("failed to get tokens", zap.Error(err))
 		return nil, nil, fmt.Errorf("%s: %w", op, err)
@@ -75,5 +75,5 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 	return &models.Session{
 		AccessToken:  access,
 		RefreshToken: refresh,
-	}, normalizedClient, nil
+	}, client, nil
 }

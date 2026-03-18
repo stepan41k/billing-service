@@ -10,8 +10,8 @@ import (
 	"github.com/stepan41k/billing-service/internal/models"
 )
 
-func (fr *FirebirdRepo) GetClient(ctx context.Context, login string) (*models.Client, error) {
-	const op = "repository.firebird.profile.GetClient"
+func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.Client, error) {
+	const op = "repository.firebird.GetProfile"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -41,7 +41,7 @@ func (fr *FirebirdRepo) GetClient(ctx context.Context, login string) (*models.Cl
 	err = row.Scan(&client.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, domain.ErrUserNotFound
+			return nil, fmt.Errorf("%s: %w", op, domain.ErrUserNotFound)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -71,8 +71,8 @@ func (fr *FirebirdRepo) GetClient(ctx context.Context, login string) (*models.Cl
 	return &client, nil
 }
 
-func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
-	const op = "repository.firebird.profile.Create"
+func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.CreateClient) (*models.Client, error) {
+	const op = "repository.firebird.CreateProfile"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -91,7 +91,7 @@ func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) 
 		}
 	}()
 
-	var normalizedClient models.NormalizedClient
+	var normalizedClient models.Client
 
 	row := tx.QueryRowContext(ctx, `
 		INSERT INTO ACCOUTNS (LOGIN, PASSWORD_HASH)
@@ -107,7 +107,7 @@ func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) 
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO CLIENT_PROFILES(ACCOUNT_ID, ACCOUNT_NUMBER, CONTACT_NUMBER)
 		VALUES($1, $2, $3);
-	`, normalizedClient.ID, newClient.Client, newClient.Contract)
+	`, normalizedClient.ID, newClient.ClientNumber, newClient.ContractNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -122,13 +122,13 @@ func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	normalizedClient = models.NormalizedClient{
-		ID:          normalizedClient.ID,
-		Login:       newClient.Login,
-		Client:      newClient.Client,
-		Contract:    newClient.Contract,
-		PhoneNumber: newClient.PhoneNumber,
-		Email:       newClient.Email,
+	normalizedClient = models.Client{
+		ID:             normalizedClient.ID,
+		Login:          newClient.Login,
+		ClientNumber:   newClient.ClientNumber,
+		ContractNumber: newClient.ContractNumber,
+		PhoneNumber:    newClient.PhoneNumber,
+		Email:          newClient.Email,
 	}
 
 	return &normalizedClient, nil

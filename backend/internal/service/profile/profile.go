@@ -9,8 +9,8 @@ import (
 )
 
 type ProfileRepository interface {
-	Create(ctx context.Context, newCLient models.NewClient) (*models.NormalizedClient, error)
-	GetNormalized(ctx context.Context, login string) (*models.NormalizedClient, error)
+	GetProfile(ctx context.Context, login string) (*models.Client, error)
+	CreateProfile(ctx context.Context, newClient models.CreateClient) (*models.Client, error)
 }
 
 type ProfileService struct {
@@ -25,22 +25,22 @@ func New(log *zap.Logger, profileRepository ProfileRepository) *ProfileService {
 	}
 }
 
-func (ps *ProfileService) GetClient(ctx context.Context, login string) (*models.NormalizedClient, error) {
-	const op = "service.profile.GetClient"
-	log := ps.log.With(
-		zap.String("op", op),
-		zap.String("login", login),
-	)
+func (ps *ProfileService) Get(ctx context.Context, login string) (*models.Client, error) {
+	const op = "service.profile.Get"
+	log := ps.log.With(zap.String("op", op))
 
-	normalizedClient, err := ps.profileRepository.GetNormalized(ctx, login)
+	client, err := ps.profileRepository.GetProfile(ctx, login)
 	if err != nil {
 		log.Error("failed to get client", zap.Error(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return normalizedClient, nil
+	return client, nil
 }
 
-func (ps *ProfileService) CreateClient(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
+func (ps *ProfileService) Create(ctx context.Context, newClient models.CreateClient) (*models.Client, error) {
+	const op = "service.profile.Create"
+	_ = ps.log.With(zap.String("op", op))
+
 	return nil, nil
 }

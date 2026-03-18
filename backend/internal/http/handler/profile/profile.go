@@ -9,18 +9,18 @@ import (
 )
 
 type ProfileService interface {
-	CreateClient(ctx context.Context, newCLient models.NewClient) (*models.NormalizedClient, error)
-	GetClient(ctx context.Context, login string) (*models.NormalizedClient, error)
+	Get(ctx context.Context, login string) (*models.Client, error)
+	Create(ctx context.Context, newCLient models.CreateClient) (*models.Client, error)
 }
 
 type ProfileHandler struct {
-	log *zap.Logger
+	log            *zap.Logger
 	profileService ProfileService
 }
 
 func New(log *zap.Logger, profileService ProfileService) *ProfileHandler {
 	return &ProfileHandler{
-		log: log,
+		log:            log,
 		profileService: profileService,
 	}
 }
@@ -33,6 +33,6 @@ func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 
 func (ph *ProfileHandler) CreateClient(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		
+
 	}
 }
