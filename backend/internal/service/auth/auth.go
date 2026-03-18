@@ -37,7 +37,7 @@ func New(cfg config.TokenConfig, log *zap.Logger, authRepository AuthRepository,
 	}
 }
 
-func (as *AuthService) Login(ctx context.Context, login, password string) (*models.TokenClient, *models.NormalizedClient, error) {
+func (as *AuthService) Login(ctx context.Context, login, password string) (*models.Session, *models.NormalizedClient, error) {
 	const op = "service.auth.Login"
 	log := as.log.With(
 		zap.String("op", op),
@@ -72,7 +72,7 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 		return nil, nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &models.TokenClient{
+	return &models.Session{
 		AccessToken:  access,
 		RefreshToken: refresh,
 	}, normalizedClient, nil

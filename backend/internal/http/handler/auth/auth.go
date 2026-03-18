@@ -13,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	Login(ctx context.Context, login, password string) (*models.TokenClient, *models.NormalizedClient, error)
+	Login(ctx context.Context, login, password string) (*models.Session, *models.NormalizedClient, error)
 }
 
 type AuthHandler struct {
@@ -30,7 +30,7 @@ func New(log *zap.Logger, authService AuthService) *AuthHandler {
 
 func (ah *AuthHandler) Login(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req models.LoginClient
+		var req LoginRequset
 
 		// Decode request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -58,11 +58,19 @@ func (ah *AuthHandler) Login(ctx context.Context) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(
-			models.ResponseLoginСlient{
-				TokenClient: *token,
-				Client:      *client,
+			LoginResponse{
+				AccessToken:  token.AccessToken,
+				RefreshToken: token.RefreshToken,
+				Profile: ProfileClient{
+					ID:          client.ID,
+					Login:       client.Login,
+					Client:      client.Client,
+					Contract:    client.Contract,
+					PhoneNumber: client.PhoneNumber,
+					Email:       client.PhoneNumber,
+				},
 			},
 		)
 	}
