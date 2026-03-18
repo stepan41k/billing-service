@@ -31,11 +31,12 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.C
 	}()
 
 	var client models.Client
+	client.Login = login
 
 	row := tx.QueryRowContext(ctx, `
-		SELECT ID
-		FROM ACCOUNTS
-		WHERE LOGIN = $1;
+		SELECT "ID"
+		FROM "ACCOUNTS"
+		WHERE "LOGIN" = ?;
 	`, login)
 
 	err = row.Scan(&client.ID)
@@ -47,9 +48,9 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.C
 	}
 
 	row = tx.QueryRowContext(ctx, `
-		SELECT ACCOUNT_NUMBER, CONTRACT_NUMBER
-		FROM CLIENT_PROFILES
-		WHERE ACCOUNT_ID = $1;
+		SELECT "ACCOUNT_NUMBER", "CONTRACT_NUMBER"
+		FROM "CLIENT_PROFILES"
+		WHERE "ACCOUNT_ID" = ?;
 	`, client.ID)
 
 	err = row.Scan(&client.ClientNumber, &client.ContractNumber)
@@ -58,9 +59,9 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.C
 	}
 
 	row = tx.QueryRowContext(ctx, `
-		SELECT PHONE_NUMBER, EMAIL
-		FROM CONTACTS
-		WHERE ACCOUNT_ID = $1;
+		SELECT "PHONE_NUMBER", "EMAIL"
+		FROM "CONTACTS"
+		WHERE "ACCOUNT_ID" = ?;
 	`, client.ID)
 
 	err = row.Scan(&client.PhoneNumber, &client.Email)
@@ -91,46 +92,43 @@ func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.Crea
 		}
 	}()
 
-	var normalizedClient models.Client
+	var client models.Client
 
 	row := tx.QueryRowContext(ctx, `
-		INSERT INTO ACCOUTNS (LOGIN, PASSWORD_HASH)
-		VALUES($1, $2)
+		INSERT INTO "ACCOUNTS" ("LOGIN", "PASSWORD_HASH")
+		VALUES(?, ?)
 		RETURNING ID;
-	`)
+	`, newClient.Login, []byte(newClient.Password))
 
-	err = row.Scan(&normalizedClient.ID)
+	err = row.Scan(&client.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO CLIENT_PROFILES(ACCOUNT_ID, ACCOUNT_NUMBER, CONTACT_NUMBER)
-		VALUES($1, $2, $3);
-	`, normalizedClient.ID, newClient.ClientNumber, newClient.ContractNumber)
+		INSERT INTO "CLIENT_PROFILES"("ACCOUNT_ID", "ACCOUNT_NUMBER", "CONTRACT_NUMBER")
+		VALUES(?, ?, ?);
+	`, client.ID, newClient.ClientNumber, newClient.ContractNumber)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO CONTACTS(ACCOUNT_ID, PHONE_NUMBER, EMAIL)
-		VALUES ($1, $2, $3)
-	`, normalizedClient.ID, newClient.PhoneNumber, newClient.Email)
+		INSERT INTO "CONTACTS"("ACCOUNT_ID", "PHONE_NUMBER", "EMAIL")
+		VALUES (?, ?, ?)
+	`, client.ID, newClient.PhoneNumber, newClient.Email)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	normalizedClient = models.Client{
-		ID:             normalizedClient.ID,
-		Login:          newClient.Login,
-		ClientNumber:   newClient.ClientNumber,
-		ContractNumber: newClient.ContractNumber,
-		PhoneNumber:    newClient.PhoneNumber,
-		Email:          newClient.Email,
-	}
+	client.Login = newClient.Login
+	client.ClientNumber = newClient.ClientNumber
+	client.ContractNumber = newClient.ContractNumber
+	client.PhoneNumber = newClient.PhoneNumber
+	client.Email = newClient.Email
 
-	return &normalizedClient, nil
+	return &client, nil
 
 }

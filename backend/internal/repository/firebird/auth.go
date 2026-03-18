@@ -32,9 +32,9 @@ func (fr *FirebirdRepo) GetPassword(ctx context.Context, login string) (string, 
 	var password string
 
 	row := fr.db.QueryRowContext(ctx, `
-		SELECT PASSWORD_HASH
-		FROM ACCOUNTS
-		WHERE LOGIN = $1;
+		SELECT "PASSWORD_HASH"
+		FROM "ACCOUNTS"
+		WHERE "LOGIN" = ?;
 	`, login)
 
 	err = row.Scan(&password)

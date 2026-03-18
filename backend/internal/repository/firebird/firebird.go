@@ -25,9 +25,14 @@ func NewDB(connStr string) (*FirebirdRepo, error) {
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(time.Hour)
 
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping: %s", err.Error())
+	}
+
 	return &FirebirdRepo{
 		connStr: connStr,
 		mu:      &sync.Mutex{},
+		db:      db,
 	}, nil
 }
 
