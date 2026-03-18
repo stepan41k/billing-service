@@ -42,9 +42,10 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 	hAuth := handerAuth.New(log, sAuth)
 	hProfile := handerProfile.New(log, sProfile)
 
+	logMW := middleware.LoggerMiddleware(log)
 	authMW := middleware.AuthMiddleware(log, cfg.TokenConfig)
 
-	router := chi.NewRouter()
+	router := chi.NewRouter().With(logMW)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
