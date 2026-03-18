@@ -10,12 +10,13 @@ import (
 
 	"github.com/stepan41k/billing-service/internal/app"
 	"github.com/stepan41k/billing-service/internal/config"
-	"github.com/stepan41k/billing-service/internal/logger"
+	"github.com/stepan41k/billing-service/internal/lib/logger"
 	"go.uber.org/zap"
 )
 
 func main() {
 	cfg := config.MustLoad()
+
 	logger, err := logger.New(logger.Env(cfg.Env))
 	if err != nil {
 		log.Fatalf("failed initilizate logger: %s", err.Error())
@@ -26,7 +27,9 @@ func main() {
 		logger.Fatal("failed to initialize application", zap.Error(err))
 	}
 
-	go application.Run()
+	go func() {
+		application.Run()
+	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

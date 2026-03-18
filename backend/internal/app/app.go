@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/stepan41k/billing-service/internal/app/httpServer"
+	httpServer "github.com/stepan41k/billing-service/internal/app/http_server"
 	"github.com/stepan41k/billing-service/internal/config"
-	handerAuth "github.com/stepan41k/billing-service/internal/handler/auth"
-	handerProfile "github.com/stepan41k/billing-service/internal/handler/profile"
+	handerAuth "github.com/stepan41k/billing-service/internal/http/handler/auth"
+	handerProfile "github.com/stepan41k/billing-service/internal/http/handler/profile"
+	"github.com/stepan41k/billing-service/internal/http/middleware"
 	"github.com/stepan41k/billing-service/internal/repository/firebird"
 	serviceAuth "github.com/stepan41k/billing-service/internal/service/auth"
 	serviceProfile "github.com/stepan41k/billing-service/internal/service/profile"
@@ -34,21 +35,25 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 	}
 
 	// service
-	sAuth := serviceAuth.New(log, repository)
 	sProfile := serviceProfile.New(log, repository)
+	sAuth := serviceAuth.New(cfg.TokenConfig, log, repository, sProfile)
 
 	// handler
 	hAuth := handerAuth.New(log, sAuth)
 	hProfile := handerProfile.New(log, sProfile)
 
-	router := chi.NewRouter()
+	logMW := middleware.LoggerMiddleware(log)
+	authMW := middleware.AuthMiddleware(cfg.TokenConfig, log)
+
+	router := chi.NewRouter().With(logMW)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("ok"))
 		})
 		r.Post("/login", hAuth.Login(context.Background()))
-		r.Post("/profile", hProfile.Get(context.Background()))
+		r.Post("/profile", hProfile.CreateClient(context.Background()))
+		r.With(authMW).Get("/profile", hProfile.GetClient(context.Background()))
 	})
 
 	return &App{

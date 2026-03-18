@@ -40,12 +40,12 @@ type TokenConfig struct {
 }
 
 func (f *FireBird) DSN() string {
-	return fmt.Sprintf("%s/%d:%s?user=%s&password=%s",
+	return fmt.Sprintf("%s:%s@%s:%d%s",
+		f.User,
+		f.Password,
 		f.Host,
 		f.Port,
 		f.Name,
-		f.User,
-		f.Password,
 	)
 }
 
