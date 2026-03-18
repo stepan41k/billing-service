@@ -10,6 +10,7 @@ import (
 	"github.com/stepan41k/billing-service/internal/config"
 	handerAuth "github.com/stepan41k/billing-service/internal/handler/auth"
 	handerProfile "github.com/stepan41k/billing-service/internal/handler/profile"
+	"github.com/stepan41k/billing-service/internal/middleware"
 	"github.com/stepan41k/billing-service/internal/repository/firebird"
 	serviceAuth "github.com/stepan41k/billing-service/internal/service/auth"
 	serviceProfile "github.com/stepan41k/billing-service/internal/service/profile"
@@ -41,6 +42,8 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 	hAuth := handerAuth.New(log, sAuth)
 	hProfile := handerProfile.New(log, sProfile)
 
+	authMW := middleware.AuthMiddleware(log, cfg.TokenConfig)
+
 	router := chi.NewRouter()
 	router.Route("/", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +51,7 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 			w.Write([]byte("ok"))
 		})
 		r.Post("/login", hAuth.Login(context.Background()))
-		r.Post("/profile", hProfile.GetClient(context.Background()))
+		r.With(authMW).Post("/profile", hProfile.GetClient(context.Background()))
 	})
 
 	return &App{
