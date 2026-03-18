@@ -19,3 +19,13 @@ type NormalizedClient struct {
 	PhoneNumber string `json:"phone_number"`
 	Email       string `json:"email"`
 }
+
+type Client struct {
+	ID             int64
+	Login          string
+	IsReadOnly     bool
+	ClientNumber   string
+	ContractNumber string
+	PhoneNumber    string
+	Email          string
+}

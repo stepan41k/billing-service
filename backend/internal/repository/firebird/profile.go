@@ -2,13 +2,16 @@ package firebird
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
+	"github.com/stepan41k/billing-service/internal/domain"
 	"github.com/stepan41k/billing-service/internal/models"
 )
 
-func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*models.NormalizedClient, error) {
-	const op = "repository.firebird.profile.Get"
+func (fr *FirebirdRepo) GetClient(ctx context.Context, login string) (*models.Client, error) {
+	const op = "repository.firebird.profile.GetClient"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -26,8 +29,8 @@ func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*model
 			err = fmt.Errorf("%s: %w", op, err)
 		}
 	}()
-	
-	var normalizedClient models.NormalizedClient 
+
+	var client models.Client
 
 	row := tx.QueryRowContext(ctx, `
 		SELECT ID
@@ -35,8 +38,11 @@ func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*model
 		WHERE LOGIN = $1;
 	`, login)
 
-	err = row.Scan(&normalizedClient.ID)
+	err = row.Scan(&client.ID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrUserNotFound
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -44,9 +50,9 @@ func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*model
 		SELECT ACCOUNT_NUMBER, CONTRACT_NUMBER
 		FROM CLIENT_PROFILES
 		WHERE ACCOUNT_ID = $1;
-	`, normalizedClient.ID)
+	`, client.ID)
 
-	err = row.Scan(&normalizedClient.Client, &normalizedClient.Contract)
+	err = row.Scan(&client.ClientNumber, &client.ContractNumber)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -55,14 +61,14 @@ func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*model
 		SELECT PHONE_NUMBER, EMAIL
 		FROM CONTACTS
 		WHERE ACCOUNT_ID = $1;
-	`, normalizedClient.ID)	
+	`, client.ID)
 
-	err = row.Scan(&normalizedClient.PhoneNumber, &normalizedClient.Email)
+	err = row.Scan(&client.PhoneNumber, &client.Email)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &normalizedClient, nil
+	return &client, nil
 }
 
 func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
@@ -117,12 +123,12 @@ func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) 
 	}
 
 	normalizedClient = models.NormalizedClient{
-		ID: normalizedClient.ID,
-		Login: newClient.Login,
-		Client: newClient.Client,
-		Contract: newClient.Contract,
+		ID:          normalizedClient.ID,
+		Login:       newClient.Login,
+		Client:      newClient.Client,
+		Contract:    newClient.Contract,
 		PhoneNumber: newClient.PhoneNumber,
-		Email: newClient.Email,
+		Email:       newClient.Email,
 	}
 
 	return &normalizedClient, nil
