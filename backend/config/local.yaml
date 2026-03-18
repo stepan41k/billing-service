@@ -8,9 +8,9 @@ http_server:
 
 firebird:
   host: "localhost"
-  port: 2020
-  name: "test"
-  user: "user"
+  port: 3050
+  name: "/var/lib/firebird/data/billing-service.fdb"
+  user: "billing"
 
 token:
   access_token_ttl: 15m
