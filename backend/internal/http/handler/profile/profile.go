@@ -40,7 +40,7 @@ func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 		// Use Service
 		client, err := ph.profileService.Get(r.Context(), authInfo.Login)
 		if err != nil {
-			if errors.Is(err, domain.ErrUserNotFound) {
+			if errors.Is(err, domain.ErrInvalidCredentials) {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
@@ -70,14 +70,14 @@ func (ph *ProfileHandler) CreateClient(ctx context.Context) http.HandlerFunc {
 
 		// Decode request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			ph.log.Warn("invalid JSON", zap.Error(err))
+			ph.log.Debug("invalid JSON", zap.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		// Validate
 		if err := validation.Validate.Struct(&req); err != nil {
-			ph.log.Warn("validation faild")
+			ph.log.Debug("validation faild", zap.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}

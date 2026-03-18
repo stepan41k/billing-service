@@ -41,14 +41,13 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 	const op = "service.auth.Login"
 	log := as.log.With(
 		zap.String("op", op),
-		zap.String("login", login),
 	)
 
 	// Get password hash from DB and check him
 	passwordHash, err := as.authRepository.GetPassword(ctx, login)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserNotFound) {
-			log.Warn("failed login: user not found")
+			log.Debug("failed login: user not found")
 			return nil, nil, domain.ErrInvalidCredentials
 		}
 
