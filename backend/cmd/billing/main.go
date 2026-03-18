@@ -10,7 +10,7 @@ import (
 
 	"github.com/stepan41k/billing-service/internal/app"
 	"github.com/stepan41k/billing-service/internal/config"
-	"github.com/stepan41k/billing-service/internal/logger"
+	"github.com/stepan41k/billing-service/internal/lib/logger"
 	"go.uber.org/zap"
 )
 
