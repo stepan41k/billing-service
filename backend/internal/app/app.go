@@ -52,7 +52,8 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 			w.Write([]byte("ok"))
 		})
 		r.Post("/login", hAuth.Login(context.Background()))
-		r.With(authMW).Post("/profile", hProfile.GetClient(context.Background()))
+		r.Post("/profile", hProfile.CreateClient(context.Background()))
+		r.With(authMW).Get("/profile", hProfile.GetClient(context.Background()))
 	})
 
 	return &App{

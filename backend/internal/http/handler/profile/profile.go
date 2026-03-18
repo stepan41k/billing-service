@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/stepan41k/billing-service/internal/domain"
+	"github.com/stepan41k/billing-service/internal/http/validation"
 	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
@@ -65,6 +66,48 @@ func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 
 func (ph *ProfileHandler) CreateClient(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req CreateClientRequest
 
+		// Decode request
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			ph.log.Warn("invalid JSON", zap.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// Validate
+		if err := validation.Validate.Struct(&req); err != nil {
+			ph.log.Warn("validation faild")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		client, err := ph.profileService.Create(r.Context(), models.CreateClient{
+			Login:          req.Login,
+			Password:       req.Passoword,
+			IsReadOnly:     req.IsReadOnly,
+			ClientNumber:   req.ClientNumber,
+			ContractNumber: req.ContractNumber,
+			PhoneNumber:    req.PhoneNumber,
+			Email:          req.Email,
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(
+			ClientResponse{
+				ID:             client.ID,
+				Login:          client.Login,
+				IsReadOnly:     client.IsReadOnly,
+				ClientNumber:   client.ClientNumber,
+				ContractNumber: client.ContractNumber,
+				PhoneNumber:    client.PhoneNumber,
+				Email:          client.PhoneNumber,
+			},
+		)
 	}
 }
