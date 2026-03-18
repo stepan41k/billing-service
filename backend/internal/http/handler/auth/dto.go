@@ -14,6 +14,7 @@ type LoginResponse struct {
 type ProfileClient struct {
 	ID             int64  `json:"id"`
 	Login          string `json:"login"`
+	IsReadOnly     bool   `json:"is_read_only"`
 	ClientNumber   string `json:"client"`
 	ContractNumber string `json:"contract"`
 	PhoneNumber    string `json:"phone_number"`

@@ -66,6 +66,7 @@ func (ah *AuthHandler) Login(ctx context.Context) http.HandlerFunc {
 				Profile: ProfileClient{
 					ID:             client.ID,
 					Login:          client.Login,
+					IsReadOnly:     client.IsReadOnly,
 					ClientNumber:   client.ClientNumber,
 					ContractNumber: client.ContractNumber,
 					PhoneNumber:    client.PhoneNumber,
