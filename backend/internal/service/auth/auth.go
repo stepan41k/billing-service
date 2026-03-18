@@ -8,7 +8,7 @@ import (
 )
 
 type AuthRepository interface {
-	Get()
+	GetPassword(ctx context.Context, login string) (string, error)
 }
 
 type AuthService struct {
