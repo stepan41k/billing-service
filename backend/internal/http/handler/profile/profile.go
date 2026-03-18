@@ -2,8 +2,10 @@ package profile
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
+	"github.com/stepan41k/billing-service/internal/domain"
 	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
@@ -27,7 +29,32 @@ func New(log *zap.Logger, profileService ProfileService) *ProfileHandler {
 
 func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		authInfo, ok := domain.AuthFromContext(r.Context())
+		if ok != true {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
+		// Use Service
+		client, err := ph.profileService.Get(r.Context(), authInfo.Login)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(
+			ClientResponse{
+				ID:             client.ID,
+				Login:          client.Login,
+				IsReadOnly:     client.IsReadOnly,
+				ClientNumber:   client.ClientNumber,
+				ContractNumber: client.ContractNumber,
+				PhoneNumber:    client.PhoneNumber,
+				Email:          client.PhoneNumber,
+			},
+		)
 	}
 }
 
