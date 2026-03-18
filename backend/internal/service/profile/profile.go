@@ -46,7 +46,13 @@ func (ps *ProfileService) Get(ctx context.Context, login string) (*models.Client
 
 func (ps *ProfileService) Create(ctx context.Context, newClient models.CreateClient) (*models.Client, error) {
 	const op = "service.profile.Create"
-	_ = ps.log.With(zap.String("op", op))
+	log := ps.log.With(zap.String("op", op))
 
-	return nil, nil
+	client, err := ps.profileRepository.CreateProfile(ctx, newClient)
+	if err != nil {
+		log.Error("failed to create client", zap.Error(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return client, nil
 }
