@@ -4,12 +4,13 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
 
 type ProfileService interface {
-	Get()
-	Create()
+	CreateClient(ctx context.Context, newCLient models.NewClient) (*models.NormalizedClient, error)
+	GetClient(ctx context.Context, login string) (*models.NormalizedClient, error)
 }
 
 type ProfileHandler struct {
@@ -24,13 +25,13 @@ func New(log *zap.Logger, profileService ProfileService) *ProfileHandler {
 	}
 }
 
-func (ph *ProfileHandler) Get(ctx context.Context) http.HandlerFunc {
+func (ph *ProfileHandler) GetClient(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
 
-func (ph *ProfileHandler) Create(ctx context.Context) http.HandlerFunc {
+func (ph *ProfileHandler) CreateClient(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		
 	}
