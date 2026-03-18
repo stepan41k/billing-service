@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/stepan41k/billing-service/internal/app/httpServer"
+	httpServer "github.com/stepan41k/billing-service/internal/app/http_server"
 	"github.com/stepan41k/billing-service/internal/config"
 	handerAuth "github.com/stepan41k/billing-service/internal/handler/auth"
 	handerProfile "github.com/stepan41k/billing-service/internal/handler/profile"
@@ -48,7 +48,7 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 			w.Write([]byte("ok"))
 		})
 		r.Post("/login", hAuth.Login(context.Background()))
-		r.Post("/profile", hProfile.Get(context.Background()))
+		r.Post("/profile", hProfile.GetClient(context.Background()))
 	})
 
 	return &App{
