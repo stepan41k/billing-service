@@ -9,10 +9,13 @@ import (
 	"github.com/stepan41k/billing-service/internal/domain"
 	"github.com/stepan41k/billing-service/internal/lib/jwt"
 	"github.com/stepan41k/billing-service/internal/models"
-	"github.com/stepan41k/billing-service/internal/service/profile"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type ProfileService interface {
+	GetClient(ctx context.Context, login string) (*models.NormalizedClient, error)
+}
 
 type AuthRepository interface {
 	GetPassword(ctx context.Context, login string) (string, error)
@@ -22,10 +25,10 @@ type AuthService struct {
 	cfg            config.TokenConfig
 	log            *zap.Logger
 	authRepository AuthRepository
-	profileService *profile.ProfileService
+	profileService ProfileService
 }
 
-func New(cfg config.TokenConfig, log *zap.Logger, authRepository AuthRepository, profileService *profile.ProfileService) *AuthService {
+func New(cfg config.TokenConfig, log *zap.Logger, authRepository AuthRepository, profileService ProfileService) *AuthService {
 	return &AuthService{
 		cfg:            cfg,
 		log:            log,

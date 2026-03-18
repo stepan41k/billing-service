@@ -36,7 +36,7 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 
 	// service
 	sProfile := serviceProfile.New(log, repository)
-	sAuth := serviceAuth.New(log, repository, sProfile)
+	sAuth := serviceAuth.New(cfg.TokenConfig, log, repository, sProfile)
 
 	// handler
 	hAuth := handerAuth.New(log, sAuth)
