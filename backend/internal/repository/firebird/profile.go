@@ -7,7 +7,7 @@ import (
 	"github.com/stepan41k/billing-service/internal/models"
 )
 
-func (fr *FirebirdRepo) Get(ctx context.Context, login string) (*models.NormalizedClient, error) {
+func (fr *FirebirdRepo) GetNormalized(ctx context.Context, login string) (*models.NormalizedClient, error) {
 	const op = "repository.firebird.profile.Get"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
