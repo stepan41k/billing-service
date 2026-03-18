@@ -9,7 +9,7 @@ import (
 
 type ProfileRepository interface {
 	Create(ctx context.Context, newCLient models.NewClient) (*models.NormalizedClient, error)
-	Get(ctx context.Context, login string) (*models.NormalizedClient, error)
+	GetNormalized(ctx context.Context, login string) (*models.NormalizedClient, error)
 }
 
 type ProfileService struct {
@@ -24,11 +24,11 @@ func New(log *zap.Logger, profileRepository ProfileRepository) *ProfileService {
 	}	
 }
 
-func (ps *ProfileService) Get(ctx context.Context, login string) (*models.NormalizedClient, error) {
+func (ps *ProfileService) GetClient(ctx context.Context, login string) (*models.NormalizedClient, error) {
 
 }
 
-func (ps *ProfileService) Create(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
+func (ps *ProfileService) CreateClient(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
 
 }
 
