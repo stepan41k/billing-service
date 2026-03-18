@@ -2,7 +2,11 @@ package firebird
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+
+	"github.com/stepan41k/billing-service/internal/domain"
 )
 
 func (fr *FirebirdRepo) GetPassword(ctx context.Context, login string) (string, error) {
@@ -35,6 +39,9 @@ func (fr *FirebirdRepo) GetPassword(ctx context.Context, login string) (string, 
 
 	err = row.Scan(&password)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", domain.ErrUserNotFound
+		}
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
