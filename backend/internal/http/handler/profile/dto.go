@@ -13,8 +13,8 @@ type ClientResponse struct {
 type CreateClientRequest struct {
 	Login          string `json:"login" validate:"required"`
 	Passoword      string `json:"password" validate:"required"`
-	IsReadOnly     bool   `json:"is_read_only" validate:"required"`
-	ClientNumber   string `json:"client_number" validate:"requierd"`
+	IsReadOnly     bool   `json:"is_read_only,omitempty"`
+	ClientNumber   string `json:"client_number" validate:"required"`
 	ContractNumber string `json:"contract_number" validate:"required"`
 	PhoneNumber    string `json:"phone_number" validate:"required"`
 	Email          string `json:"email" validate:"required"`
