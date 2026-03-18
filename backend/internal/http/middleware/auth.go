@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func AuthMiddleware(log *zap.Logger, cfg config.TokenConfig) func(http.Handler) http.Handler {
+func AuthMiddleware(cfg config.TokenConfig, log *zap.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -26,7 +26,7 @@ func AuthMiddleware(log *zap.Logger, cfg config.TokenConfig) func(http.Handler) 
 				return
 			}
 
-			_, err := jwt.ValidateAccessToken(cfg, parts[1])
+			claims, err := jwt.ValidateAccessToken(cfg, parts[1])
 			if err != nil {
 				if errors.Is(err, domain.ErrTokenExpired) {
 					http.Error(w, "token expired", http.StatusUnauthorized)
@@ -45,7 +45,13 @@ func AuthMiddleware(log *zap.Logger, cfg config.TokenConfig) func(http.Handler) 
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			authInfo := domain.AuthInfo{
+				ID:    claims.UserID,
+				Login: claims.Login,
+			}
+
+			ctx := domain.ContextWithAuth(r.Context(), authInfo)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 

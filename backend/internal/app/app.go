@@ -43,7 +43,7 @@ func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 	hProfile := handerProfile.New(log, sProfile)
 
 	logMW := middleware.LoggerMiddleware(log)
-	authMW := middleware.AuthMiddleware(log, cfg.TokenConfig)
+	authMW := middleware.AuthMiddleware(cfg.TokenConfig, log)
 
 	router := chi.NewRouter().With(logMW)
 	router.Route("/", func(r chi.Router) {
