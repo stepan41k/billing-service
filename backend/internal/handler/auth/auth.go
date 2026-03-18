@@ -4,11 +4,12 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/stepan41k/billing-service/internal/models"
 	"go.uber.org/zap"
 )
 
 type AuthService interface {
-	Login()
+	Login(ctx context.Context, login string) (*models.NormalizedClient, error)
 }
 
 type AuthHandler struct {
