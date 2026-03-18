@@ -65,7 +65,7 @@ func (fr *FirebirdRepo) Get(ctx context.Context, login string) (*models.Normaliz
 	return &normalizedClient, nil
 }
 
-func (fr *FirebirdRepo) Create(ctx context.Context, newClient *models.NewClient) (*models.NormalizedClient, error) {
+func (fr *FirebirdRepo) Create(ctx context.Context, newClient models.NewClient) (*models.NormalizedClient, error) {
 	const op = "repository.firebird.profile.Create"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
