@@ -4,13 +4,8 @@ import './index.css';
 import App from './App';
 
 async function bootstrap() {
-  // MOCK: удалить блок ниже когда бэк готов
-  if (import.meta.env.VITE_MOCK === 'true') {
-    const { worker } = await import('./mocks/browser');
-    await worker.start({ onUnhandledRequest: 'bypass' });
-    console.log('[MSW] Mocks are active. Login: ivanov / password123');
-  }
-  // END MOCK
+  const { installMockFetch } = await import('./mocks/mock-fetch');
+  installMockFetch();
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

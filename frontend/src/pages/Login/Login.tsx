@@ -1,171 +1,105 @@
-import {
-  useState,
-  useCallback,
-  type FormEvent,
-  type ChangeEvent,
-} from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion, type Variants } from "framer-motion";
-import { useAuth } from "../../hooks/useAuth";
-import { NetworkBackground } from "../../components/NetworkBackground";
-import styles from "./Login.module.css";
-
-const pageVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: {
-    opacity: 1,
-    transition: { duration: 0.28, ease: "easeOut" },
-  },
-  exit: {
-    opacity: 0,
-    scale: 1.012,
-    filter: "blur(3px)",
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-  },
-};
-
-const cardVariants: Variants = {
-  initial: { opacity: 0, y: 18, scale: 0.97 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const containerVariants: Variants = {
-  initial: {},
-  animate: {
-    transition: { staggerChildren: 0.065, delayChildren: 0.12 },
-  },
-};
-
-const itemVariants: Variants = {
-  initial: { opacity: 0, y: 6 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.22, ease: "easeOut" },
-  },
-};
-
-interface LoginForm {
-  login: string;
-  password: string;
-}
+import { useState, type FormEvent } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import NetworkBackground from '@/components/NetworkBackground/NetworkBackground';
+import { useAuthStore } from '@/stores/auth-store';
+import { useThemeStore } from '@/stores/theme-store';
 
 export default function Login() {
-  const [form, setForm] = useState<LoginForm>({ login: "", password: "" });
-  const { login: doLogin, loading, error } = useAuth();
-  const navigate = useNavigate();
+  const { isAuth, loading, error, login } = useAuthStore();
+  const { theme, toggle } = useThemeStore();
+  const [form, setForm] = useState({ login: '', password: '' });
+  const [showPw, setShowPw] = useState(false);
 
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setForm(prev => ({ ...prev, [name]: value }));
-    },
-    [],
-  );
+  if (isAuth) return <Navigate to="/profile" replace />;
 
-  const handleSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
-      if (!form.login || !form.password || loading) return;
-
-      const ok = await doLogin({ login: form.login, password: form.password });
-      if (ok) {
-        navigate("/profile", { replace: true });
-      }
-    },
-    [doLogin, form.login, form.password, loading, navigate],
-  );
-
-  const disabled = loading || !form.login || !form.password;
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    login(form);
+  };
 
   return (
-    <motion.div
-      className={styles.root}
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-    >
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
       <NetworkBackground />
-
-      <motion.form
-        className={styles.card}
-        variants={cardVariants}
-        initial="initial"
-        animate="animate"
-        onSubmit={handleSubmit}
-        noValidate
+      {/* Theme toggle */}
+      <button
+        onClick={toggle}
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card/80 text-muted-foreground hover:text-foreground transition-colors backdrop-blur-sm"
+        aria-label="Сменить тему"
       >
-        <motion.div
-          className={styles.fields}
-          variants={containerVariants}
-          initial="initial"
-          animate="animate"
-        >
-          <motion.h1 className={styles.title} variants={itemVariants}>
-            Вход в личный кабинет
-          </motion.h1>
+        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
 
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Логин</span>
-            <input
-              name="login"
-              type="text"
-              autoComplete="username"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-sm rounded-xl border border-border bg-card/90 p-8 backdrop-blur-md"
+      >
+        {/* Logo */}
+        <div className="mb-6 flex flex-col items-center gap-2">
+          <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="6" className="fill-primary" />
+            <path d="M7 20V8l4 6 4-6v12M19 8v12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <h1 className="text-lg font-semibold text-foreground">Максима</h1>
+          <p className="text-xs text-muted-foreground">Личный кабинет</p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="login" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+              Логин
+            </label>
+            <Input
+              id="login"
               value={form.login}
-              onChange={handleChange}
+              onChange={(e) => setForm((f) => ({ ...f, login: e.target.value }))}
+              placeholder="ivanov"
+              autoComplete="username"
               required
-              disabled={loading}
             />
-          </motion.label>
+          </div>
+          <div>
+            <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+              Пароль
+            </label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                placeholder="password123"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Вход...' : 'Войти'}
+          </Button>
+        </form>
 
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Пароль</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-          </motion.label>
-
-          {error && (
-            <motion.p
-              className={styles.error}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.16 }}
-            >
-              {error}
-            </motion.p>
-          )}
-
-          <motion.button
-            type="submit"
-            className={styles.btn}
-            disabled={disabled}
-            variants={itemVariants}
-            whileTap={!disabled ? { scale: 0.97 } : undefined}
-          >
-            {loading ? "Вход..." : "Войти"}
-          </motion.button>
-
-          <motion.p className={styles.signature} variants={itemVariants}>
-            Нет аккаунта?{" "}
-            <Link to="/register" tabIndex={disabled ? -1 : 0}>
-              Зарегистрироваться
-            </Link>
-          </motion.p>
-        </motion.div>
-      </motion.form>
-    </motion.div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Нет аккаунта?{' '}
+          <Link to="/register" className="text-primary hover:underline">
+            Регистрация
+          </Link>
+        </p>
+      </motion.div>
+    </div>
   );
 }

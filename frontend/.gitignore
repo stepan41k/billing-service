@@ -1,38 +1,42 @@
+# Environment
 *.env.local
+.env
+.env.*
+
+# Scripts / Backups
 *.sh
-*.DS_Store
 *.bak
 
-# Node.js / npm
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Frontend Vite/React
-frontend/dist/
-frontend/.vite/
-frontend/node_modules/
-
-# Сборки и кэш
-dist/
-build/
-coverage/
-
-# IDE/редакторы
-.vscode/settings.json
-.idea/
-*.swp
-*.swo
-
-# ОС Mac/Windows
+# OS
 .DS_Store
 .DS_Store?
 ._*
 Thumbs.db
 ehthumbs.db
 
-# Логи/временные
+# Node.js / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Vite / React
+dist/
+.vite/
+build/
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs / Temp
 *.log
 *.tmp
 *~

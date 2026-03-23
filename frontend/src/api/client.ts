@@ -1,44 +1,112 @@
+/**
+ * API client layer.
+ * All HTTP calls go through this module.
+ * Service layer calls these functions via interface contracts.
+ */
+import { Token } from '@/lib/token';
 import type {
-  LoginPayload,
   AuthResponse,
+  Balance,
+  Contract,
+  LoginPayload,
+  Payment,
   RegisterPayload,
   RegisterResponse,
   User,
-  Contract,
-  Payment,
-  Balance,
-} from '../types'
+  SupportTicket,
+  SpeedTestResult,
+  NetworkEvent,
+  AppNotification,
+} from '@/types';
 
-const BASE_URL = import.meta.env.VITE_MOCK === 'true' ? '' : import.meta.env.VITE_API_URL ?? ''
+const BASE = '/api';
 
-class ApiError extends Error {
-  constructor(public status: number, message: string) {
-    super(message)
-  }
-}
-
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = sessionStorage.getItem('token')
-  const headers: HeadersInit = {
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...init.headers,
-  }
-  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+  };
+  const token = Token.get();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE}${path}`, { ...init, headers });
+
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText)
-    throw new ApiError(res.status, text)
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? `HTTP ${res.status}`);
   }
-  return res.json() as Promise<T>
+
+  return res.json();
 }
 
-export const api = {
-  login: (body: LoginPayload) => request<AuthResponse>('/api/login', { method: 'POST', body: JSON.stringify(body) }),
-  // TODO: подключить к POST /api/register на Go-бэке
-  register: (body: RegisterPayload) =>
-    request<RegisterResponse>('/api/register', { method: 'POST', body: JSON.stringify(body) }),
-  profile: () => request<User>('/api/profile'),
-  balance: () => request<Balance>('/api/balance'),
-  contracts: () => request<Contract[]>('/api/contracts'),
-  payments: () => request<Payment[]>('/api/payments'),
-}
+/* ── Auth ── */
+export const authApi = {
+  login: (payload: LoginPayload) =>
+    request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  register: (payload: RegisterPayload) =>
+    request<RegisterResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+
+/* ── Profile ── */
+export const profileApi = {
+  get: () => request<User>('/profile'),
+};
+
+/* ── Balance ── */
+export const balanceApi = {
+  get: () => request<Balance>('/profile/balance'),
+};
+
+/* ── Contracts ── */
+export const contractsApi = {
+  list: () => request<Contract[]>('/profile/contracts'),
+};
+
+/* ── Payments ── */
+export const paymentsApi = {
+  list: () => request<Payment[]>('/profile/payments'),
+};
+
+/* ── Support ── */
+export const supportApi = {
+  list: () => request<SupportTicket[]>('/support/tickets'),
+  create: (subject: string, text: string) =>
+    request<SupportTicket>('/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify({ subject, text }),
+    }),
+  reply: (ticketId: number, text: string) =>
+    request<SupportTicket>(`/support/tickets/${ticketId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }),
+};
+
+/* ── Speed Test ── */
+export const speedTestApi = {
+  history: () => request<SpeedTestResult[]>('/speedtest/history'),
+  run: () => request<SpeedTestResult>('/speedtest/run', { method: 'POST' }),
+};
+
+/* ── Network ── */
+export const networkApi = {
+  events: () => request<NetworkEvent[]>('/network/events'),
+};
+
+/* ── Notifications ── */
+export const notificationsApi = {
+  list: () => request<AppNotification[]>('/notifications'),
+  markRead: (id: number) =>
+    request<{ success: boolean }>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+  markAllRead: () =>
+    request<{ success: boolean }>('/notifications/read-all', {
+      method: 'PATCH',
+    }),
+};
