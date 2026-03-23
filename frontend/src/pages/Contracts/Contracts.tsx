@@ -1,207 +1,112 @@
-import { useState, useCallback, memo } from "react";
-import { motion } from "framer-motion";
-import { useContracts } from "../../hooks/useContracts";
-import { PageTransition } from "../../components/PageTransition";
-import { AnimatedList, itemVariants } from "../../components/AnimatedList";
-import { Modal } from "../../components/Modal";
-import { IconChevron } from "../../components/Icons";
-import type { Contract } from "../../types";
-import styles from "./Contracts.module.css";
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Zap, MapPin, Calendar, Banknote } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useContractsStore } from '@/stores/contracts-store';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import PageTransition from '@/components/PageTransition/PageTransition';
+import type { Contract } from '@/types';
 
-const STATUS_LABEL: Record<Contract["status"], string> = {
-  active: "Активен",
-  suspended: "Приостановлен",
-  closed: "Закрыт",
+const statusMap = {
+  active: { label: 'Активен', variant: 'success' as const },
+  suspended: { label: 'Приостановлен', variant: 'warning' as const },
+  closed: { label: 'Закрыт', variant: 'destructive' as const },
 };
-
-const bodyVariants = {
-  collapsed: { height: 0, opacity: 0 },
-  expanded: {
-    height: "auto",
-    opacity: 1,
-    transition: {
-      height: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] },
-      opacity: { duration: 0.2 },
-    },
-  },
-};
-
-const collapseVariants = {
-  expanded: { rotate: 90, transition: { duration: 0.2 } },
-  collapsed: { rotate: 0, transition: { duration: 0.2 } },
-};
-
-interface CardProps {
-  c: Contract;
-  activeContract: Contract | undefined;
-  onConnect: (c: Contract) => void;
-}
-
-const ContractCard = memo(function ContractCard({
-  c,
-  activeContract,
-  onConnect,
-}: CardProps) {
-  const [open, setOpen] = useState(false);
-  const isCurrent = activeContract?.id === c.id;
-
-  return (
-    <motion.div
-      className={`${styles.card} ${styles[c.status]}`}
-      variants={itemVariants}
-      layout
-    >
-      <button
-        type="button"
-        className={styles.header}
-        onClick={() => setOpen(p => !p)}
-      >
-        <div className={styles.headerLeft}>
-          <span className={styles.number}>№ {c.number}</span>
-          <span className={`${styles.badge} ${styles[c.status]}`}>
-            {STATUS_LABEL[c.status]}
-          </span>
-          {isCurrent && <span className={styles.current}>Текущий</span>}
-        </div>
-        <motion.span
-          className={styles.chevron}
-          variants={collapseVariants}
-          animate={open ? "expanded" : "collapsed"}
-        >
-          <IconChevron size={15} />
-        </motion.span>
-      </button>
-
-      <motion.div
-        className={styles.body}
-        variants={bodyVariants}
-        initial="collapsed"
-        animate={open ? "expanded" : "collapsed"}
-        style={{ overflow: "hidden" }}
-      >
-        <div className={styles.grid}>
-          <div className={styles.field}>
-            <span>Тариф</span>
-            <strong>{c.tariff}</strong>
-          </div>
-          <div className={styles.field}>
-            <span>Скорость</span>
-            <strong>{c.speedMbps} Мбит/с</strong>
-          </div>
-          <div className={styles.field}>
-            <span>Трафик</span>
-            <strong>
-              {c.unlimitedTraffic
-                ? "Безлимит"
-                : `${c.trafficLimitGb ?? 0} ГБ/мес`}
-            </strong>
-          </div>
-          <div className={styles.field}>
-            <span>Стоимость</span>
-            <strong className={styles.price}>{c.pricePerMonth} ₽/мес</strong>
-          </div>
-          <div className={styles.field}>
-            <span>Адрес</span>
-            <strong>{c.address}</strong>
-          </div>
-          <div className={styles.field}>
-            <span>Дата подключения</span>
-            <strong>{c.created}</strong>
-          </div>
-        </div>
-
-        {!isCurrent && c.status !== "closed" && (
-          <button
-            type="button"
-            className={styles.connectBtn}
-            onClick={e => {
-              e.stopPropagation();
-              onConnect(c);
-            }}
-          >
-            Подключить
-          </button>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-});
 
 export default function Contracts() {
-  const { contracts, loading, error } = useContracts();
-  const [pending, setPending] = useState<Contract | null>(null);
+  const { contracts, loading, fetch } = useContractsStore();
+  const [expanded, setExpanded] = useState<number | null>(null);
 
-  const activeContract = contracts.find(c => c.status === "active");
-
-  const handleConnect = useCallback((c: Contract) => {
-    setPending(c);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    setPending(null);
-  }, []);
-
-  const handleConfirm = useCallback(async () => {
-    if (!pending || !activeContract) {
-      setPending(null);
-      return;
-    }
-
-    try {
-      // TODO[backend]: интегрировать реальный API переключения тарифа.
-      // Пример контракта:
-      // await api.switchContract({
-      //   fromId: activeContract.id,
-      //   toId: pending.id,
-      // });
-      //
-      // См. файл frontend/INTEGRATION_NOTES.md.
-    } finally {
-      setPending(null);
-    }
-  }, [activeContract, pending]);
+  useEffect(() => { fetch(); }, [fetch]);
 
   if (loading) {
-    return <div className={styles.state}>Загрузка...</div>;
-  }
-
-  if (error) {
     return (
-      <div className={`${styles.state} ${styles.error}`}>
-        {error}
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
       </div>
     );
   }
 
-  return (
-    <>
-      <PageTransition>
-        <div className={styles.root}>
-          <h2 className={styles.heading}>Тарифы</h2>
-          <AnimatedList className={styles.list}>
-            {contracts.map(c => (
-              <ContractCard
-                key={c.id}
-                c={c}
-                activeContract={activeContract}
-                onConnect={handleConnect}
-              />
-            ))}
-          </AnimatedList>
-        </div>
-      </PageTransition>
+  const toggle = (id: number) => setExpanded((v) => (v === id ? null : id));
 
-      <Modal
-        open={Boolean(pending)}
-        onClose={handleClose}
-        onConfirm={handleConfirm}
-      >
-        <p>
-          Вы хотите переключить текущий тариф{" "}
-          <strong>«{activeContract?.tariff ?? "—"}»</strong>{" "}
-          на тариф <strong>«{pending?.tariff}»</strong>?
-        </p>
-      </Modal>
-    </>
+  return (
+    <PageTransition>
+      <div className="space-y-6">
+        <h1 className="text-xl font-semibold text-foreground">Договоры</h1>
+        <div className="space-y-3">
+          {contracts.map((c: Contract) => {
+            const st = statusMap[c.status];
+            const isOpen = expanded === c.id;
+            return (
+              <Card key={c.id} className="overflow-hidden transition-colors hover:border-primary/20">
+                <button
+                  onClick={() => toggle(c.id)}
+                  className="flex w-full items-center justify-between p-4 text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Zap size={16} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        #{c.number} - {c.tariff}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{c.speedMbps} Мбит/с</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={st.variant}>{st.label}</Badge>
+                    <ChevronDown
+                      size={16}
+                      className={cn('text-muted-foreground transition-transform duration-200', isOpen && 'rotate-180')}
+                    />
+                  </div>
+                </button>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <CardContent className="border-t border-border pt-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin size={14} className="text-muted-foreground" />
+                            <span className="text-muted-foreground">Адрес:</span>
+                            <span className="text-foreground">{c.address}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Banknote size={14} className="text-muted-foreground" />
+                            <span className="text-muted-foreground">Стоимость:</span>
+                            <span className="text-foreground">{formatCurrency(c.pricePerMonth)}/мес</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar size={14} className="text-muted-foreground" />
+                            <span className="text-muted-foreground">Дата:</span>
+                            <span className="text-foreground">{formatDate(c.created)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Zap size={14} className="text-muted-foreground" />
+                            <span className="text-muted-foreground">Трафик:</span>
+                            <span className="text-foreground">
+                              {c.unlimitedTraffic ? 'Безлимит' : `${c.trafficLimitGb} ГБ`}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </PageTransition>
   );
 }

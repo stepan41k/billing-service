@@ -1,49 +1,149 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light theme - cool slate/indigo ISP portal */
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 230 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 15% 12%;
+    --primary: 235 78% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 15% 93%;
+    --secondary-foreground: 230 10% 30%;
+    --muted: 230 12% 93%;
+    --muted-foreground: 230 8% 46%;
+    --accent: 230 14% 95%;
+    --accent-foreground: 230 10% 20%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 96% 50%;
+    --warning-foreground: 0 0% 5%;
+    --border: 230 12% 89%;
+    --input: 230 12% 89%;
+    --ring: 235 78% 60%;
+    --radius: 0.5rem;
+    --sidebar: 230 15% 96%;
+    --sidebar-foreground: 230 10% 30%;
+    --sidebar-accent: 230 14% 91%;
+    --sidebar-border: 230 12% 89%;
+    --header: 0 0% 100%;
+    --header-border: 230 12% 89%;
+  }
+
+  /* Dark theme: Obsidian-inspired deep blue */
+  .dark {
+    --background: 230 25% 3.5%;
+    --foreground: 230 20% 93%;
+    --card: 230 22% 8%;
+    --card-foreground: 230 20% 93%;
+    --popover: 230 22% 6%;
+    --popover-foreground: 230 20% 93%;
+    --primary: 235 78% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 18% 10%;
+    --secondary-foreground: 230 15% 75%;
+    --muted: 230 18% 10%;
+    --muted-foreground: 230 10% 42%;
+    --accent: 230 18% 12%;
+    --accent-foreground: 230 15% 80%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 96% 50%;
+    --warning-foreground: 0 0% 5%;
+    --border: 230 16% 13%;
+    --input: 230 16% 13%;
+    --ring: 235 78% 65%;
+    --radius: 0.5rem;
+    --sidebar: 230 22% 5%;
+    --sidebar-foreground: 230 10% 60%;
+    --sidebar-accent: 230 18% 10%;
+    --sidebar-border: 230 16% 10%;
+    --header: 230 22% 5%;
+    --header-border: 230 16% 10%;
+  }
 }
 
-html {
-  /* Резервирует место под скроллбар заранее — нет прыжка при появлении [SO] */
-  scrollbar-gutter: stable;
-  overflow-x: hidden;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
 }
 
-body {
-  background: #080a10;
-  color: #e8eaf6;
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  /* Скрываем скроллбар во время transition между страницами */
-  overflow-y: overlay;
-}
-
-/* Кастомный скроллбар — тонкий, тёмный */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e2130;
+  background: hsl(var(--muted-foreground) / 0.2);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2e3250;
+  background: hsl(var(--muted-foreground) / 0.35);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1e2130 transparent;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade-in {
+    animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-scale-in {
+    animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 25%, hsl(var(--primary) / 0.06) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+  .glass {
+    background: hsl(var(--background) / 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 #root {

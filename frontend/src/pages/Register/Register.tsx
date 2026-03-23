@@ -1,269 +1,108 @@
-import {
-  useState,
-  useCallback,
-  type FormEvent,
-  type ChangeEvent,
-} from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion, type Variants } from "framer-motion";
-import { useRegister } from "../../hooks/useRegister";
-import { NetworkBackground } from "../../components/NetworkBackground";
-import styles from "./Register.module.css";
-
-const pageVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: {
-    opacity: 1,
-    transition: { duration: 0.28, ease: "easeOut" },
-  },
-  exit: {
-    opacity: 0,
-    scale: 1.012,
-    filter: "blur(3px)",
-    transition: { duration: 0.2, ease: [0.4, 0, 1, 1] },
-  },
-};
-
-const cardVariants: Variants = {
-  initial: { opacity: 0, y: 18, scale: 0.97 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const containerVariants: Variants = {
-  initial: {},
-  animate: {
-    transition: { staggerChildren: 0.055, delayChildren: 0.1 },
-  },
-};
-
-const itemVariants: Variants = {
-  initial: { opacity: 0, y: 6 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.2, ease: "easeOut" },
-  },
-};
-
-interface RegisterForm {
-  login: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirm: string;
-}
-
-function sanitizePhone(raw: string): string {
-  return raw.replace(/\D/g, "").slice(0, 10);
-}
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import NetworkBackground from '@/components/NetworkBackground/NetworkBackground';
+import { useAuthStore } from '@/stores/auth-store';
+import { useThemeStore } from '@/stores/theme-store';
 
 export default function Register() {
-  const [form, setForm] = useState<RegisterForm>({
-    login: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirm: "",
-  });
-  const [success, setSuccess] = useState(false);
-
-  const { register, loading, error } = useRegister();
+  const { isAuth, loading, error, register } = useAuthStore();
+  const { theme, toggle } = useThemeStore();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ login: '', password: '', confirmPassword: '', email: '', phone: '' });
+  const [showPw, setShowPw] = useState(false);
+  const [localError, setLocalError] = useState('');
 
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setForm(prev => ({ ...prev, [name]: value }));
-    },
-    [],
-  );
+  if (isAuth) return <Navigate to="/profile" replace />;
 
-  const handlePhone = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const next = sanitizePhone(e.target.value);
-    setForm(prev => ({ ...prev, phone: next }));
-  }, []);
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLocalError('');
+    if (form.password !== form.confirmPassword) {
+      setLocalError('Пароли не совпадают');
+      return;
+    }
+    if (form.password.length < 6) {
+      setLocalError('Пароль минимум 6 символов');
+      return;
+    }
+    const ok = await register({
+      login: form.login,
+      password: form.password,
+      email: form.email,
+      phone: form.phone,
+    });
+    if (ok) navigate('/login');
+  };
 
-  const isValid =
-    form.login.length >= 3 &&
-    form.password.length >= 6 &&
-    form.password === form.confirm &&
-    form.email.includes("@");
-
-  const handleSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
-      if (!isValid || loading) return;
-
-      const ok = await register({
-        login: form.login,
-        password: form.password,
-        email: form.email,
-        phone: form.phone ? `7${form.phone}` : "",
-      });
-
-      if (ok) {
-        setSuccess(true);
-        setTimeout(() => navigate("/login", { replace: true }), 1800);
-      }
-    },
-    [form, isValid, loading, navigate, register],
-  );
-
-  const disabled = loading || success;
+  const fieldErr = localError || error;
 
   return (
-    <motion.div
-      className={styles.root}
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-    >
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
       <NetworkBackground />
-
-      <motion.form
-        className={styles.card}
-        variants={cardVariants}
-        initial="initial"
-        animate="animate"
-        onSubmit={handleSubmit}
-        noValidate
+      <button
+        onClick={toggle}
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card/80 text-muted-foreground hover:text-foreground transition-colors backdrop-blur-sm"
+        aria-label="Сменить тему"
       >
-        <motion.div
-          className={styles.fields}
-          variants={containerVariants}
-          initial="initial"
-          animate="animate"
-        >
-          <motion.h1 className={styles.title} variants={itemVariants}>
-            Регистрация
-          </motion.h1>
+        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+      </button>
 
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Логин</span>
-            <input
-              name="login"
-              type="text"
-              autoComplete="username"
-              value={form.login}
-              onChange={handleChange}
-              required
-              disabled={disabled}
-            />
-          </motion.label>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-sm rounded-xl border border-border bg-card/90 p-8 backdrop-blur-md"
+      >
+        <div className="mb-6 flex flex-col items-center gap-2">
+          <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="6" className="fill-primary" />
+            <path d="M7 20V8l4 6 4-6v12M19 8v12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <h1 className="text-lg font-semibold text-foreground">Регистрация</h1>
+          <p className="text-xs text-muted-foreground">Создать личный кабинет</p>
+        </div>
 
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Email</span>
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              disabled={disabled}
-            />
-          </motion.label>
-
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Телефон</span>
-            <div className={styles.phoneWrap}>
-              <span className={styles.phonePrefix}>+7</span>
-              <input
-                name="phone"
-                type="tel"
-                className={styles.phoneInput}
-                autoComplete="tel"
-                inputMode="numeric"
-                value={form.phone}
-                onChange={handlePhone}
-                maxLength={10}
-                disabled={disabled}
-              />
-            </div>
-          </motion.label>
-
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Пароль</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              disabled={disabled}
-            />
-          </motion.label>
-
-          <motion.label className={styles.field} variants={itemVariants}>
-            <span>Повтор пароля</span>
-            <input
-              name="confirm"
-              type="password"
-              autoComplete="new-password"
-              value={form.confirm}
-              onChange={handleChange}
-              required
-              disabled={disabled}
-            />
-          </motion.label>
-
-          {error && (
-            <motion.p
-              className={styles.error}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.16 }}
-            >
-              {error}
-            </motion.p>
-          )}
-
-          {success && (
-            <motion.p
-              className={styles.success}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              Аккаунт создан, перенаправляем на страницу входа...
-            </motion.p>
-          )}
-
-          <motion.button
-            type="submit"
-            className={styles.btn}
-            disabled={disabled || !isValid}
-            variants={itemVariants}
-            whileTap={!disabled && isValid ? { scale: 0.97 } : undefined}
-          >
-            {loading ? "Создание..." : "Зарегистрироваться"}
-          </motion.button>
-
-          <motion.div
-            className={styles.switchWrap}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.24, delay: 0.42, ease: "easeOut" }}
-          >
-            <Link to="/login" tabIndex={disabled ? -1 : 0}>
-              <button type="button" className={styles.switchBtn}>
-                Уже есть аккаунт
+        <form onSubmit={onSubmit} className="space-y-3">
+          <div>
+            <label htmlFor="reg-login" className="mb-1 block text-xs font-medium text-muted-foreground">Логин</label>
+            <Input id="reg-login" value={form.login} onChange={(e) => setForm((f) => ({ ...f, login: e.target.value }))} required />
+          </div>
+          <div>
+            <label htmlFor="reg-email" className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+            <Input id="reg-email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required />
+          </div>
+          <div>
+            <label htmlFor="reg-phone" className="mb-1 block text-xs font-medium text-muted-foreground">Телефон</label>
+            <Input id="reg-phone" type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="+7 (___) ___-__-__" required />
+          </div>
+          <div>
+            <label htmlFor="reg-pw" className="mb-1 block text-xs font-medium text-muted-foreground">Пароль</label>
+            <div className="relative">
+              <Input id="reg-pw" type={showPw ? 'text' : 'password'} value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
+              <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
-            </Link>
-          </motion.div>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="reg-pw2" className="mb-1 block text-xs font-medium text-muted-foreground">Повтор пароля</label>
+            <Input id="reg-pw2" type={showPw ? 'text' : 'password'} value={form.confirmPassword} onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))} required />
+          </div>
+          {fieldErr && <p className="text-xs text-destructive">{fieldErr}</p>}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+          </Button>
+        </form>
 
-          <motion.p className={styles.signature} variants={itemVariants}>
-            Регистрация доступа к биллингу Maxima
-          </motion.p>
-        </motion.div>
-      </motion.form>
-    </motion.div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Уже есть аккаунт?{' '}
+          <Link to="/login" className="text-primary hover:underline">Войти</Link>
+        </p>
+      </motion.div>
+    </div>
   );
 }
