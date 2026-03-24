@@ -7,6 +7,8 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/nakagami/firebirdsql"
+    _ "github.com/golang-migrate/migrate/v4/database/firebird" // Драйвер БД
+    _ "github.com/golang-migrate/migrate/v4/source/file"     // ЭТОГО ИМПОРТА НЕ ХВАТАЛО
 )
 
 
