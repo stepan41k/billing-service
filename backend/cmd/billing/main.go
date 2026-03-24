@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/stepan41k/billing-service/cmd/migrator"
 	"github.com/stepan41k/billing-service/internal/app"
 	"github.com/stepan41k/billing-service/internal/config"
 	"github.com/stepan41k/billing-service/internal/lib/logger"
@@ -26,6 +27,8 @@ func main() {
 	if err != nil {
 		logger.Fatal("failed to initialize application", zap.Error(err))
 	}
+
+	migrator.Migrate()
 
 	go func() {
 		application.Run()
