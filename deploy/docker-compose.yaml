@@ -17,7 +17,7 @@ services:
       - DB_URL=firebird-server
 
       - CONFIG_FILE=/app/config/local.yaml
-      - MIGRATIONS_PATH=app/migrations
+      - MIGRATIONS_PATH=/app/migrations
 
       - DATABASE_URL=SYSDBA:sysdba@192.168.1.22:3050/C:/Data/maximadb.fdb
 
