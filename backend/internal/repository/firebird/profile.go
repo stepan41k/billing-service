@@ -10,7 +10,7 @@ import (
 	"github.com/stepan41k/billing-service/internal/models"
 )
 
-func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.Client, error) {
+func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (c *models.Client, err error) {
 	const op = "repository.firebird.GetProfile"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
@@ -72,7 +72,7 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (*models.C
 	return &client, nil
 }
 
-func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.CreateClient) (*models.Client, error) {
+func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.CreateClient) (c *models.Client, err error) {
 	const op = "repository.firebird.CreateProfile"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
@@ -130,5 +130,4 @@ func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.Crea
 	client.Email = newClient.Email
 
 	return &client, nil
-
 }
