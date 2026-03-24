@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: .
+    build:
+      context: ../backend/
+      dockerfile: Dockerfile
     container_name: go_backend
     restart: always
     extra_hosts:
@@ -42,7 +44,7 @@ services:
       - path=/migrations/
       - database=firebird://${DB_USER}:${DB_PASSWORD}@firebird-server:${DB_PORT}${DB_NAME}
       - up
-    restart: on_failure
+    restart: on-failure
 
   firebird:
     image: jacobalberty/firebird:v3.0
