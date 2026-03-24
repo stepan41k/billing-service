@@ -6,7 +6,7 @@ services:
       context: ../backend/
       dockerfile: Dockerfile
     container_name: go_backend
-    restart: always
+    # restart: always
     extra_hosts:
       - "firebird-server:${DB_HOST}"
     environment:
@@ -15,9 +15,17 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
       - DB_URL=firebird-server
-    depends_on:
-      migrator:
-        condition: service_completed_successfully
+
+      - CONFIG_FILE=/app/config/local.yaml
+      - MIGRATIONS_PATH=/app/migrations
+
+      - DATABASE_URL=SYSDBA:sysdba@192.168.1.22:3050/C:/Data/maximadb.fdb
+
+      - ACCESS_SECRET=технолоджи1
+      - REFRESH_SECRET=технолоджи2
+    # depends_on:
+    #   migrator:
+    #     condition: service_completed_successfully
     ports:
       - "8080:8080"
 
@@ -25,37 +33,37 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy
-    restart: always
+    # restart: always
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z
     depends_on:
       - backend
 
-  migrator:
-    image: migrate/migrate
-    container_name: go_migrator
-    extra_hosts:
-      - "firebird_server:${DB_HOST}"
-    volumes:
-      - ../backend/migrations:/migrations
-    command:
-      - path=/migrations/
-      - database=firebird://${DB_USER}:${DB_PASSWORD}@firebird-server:${DB_PORT}${DB_NAME}
-      - up
-    restart: on-failure
+  # migrator:
+  #   image: migrate/migrate
+  #   container_name: go_migrator
+  #   extra_hosts:
+  #     - "firebird_server:${DB_HOST}"
+  #   volumes:
+  #     - ../backend/migrations:/migrations
+  #   command:
+  #     - path=/migrations/
+  #     - database=firebird://${DB_USER}:${DB_PASSWORD}@firebird-server:${DB_PORT}${DB_NAME}
+  #     - up
+  #   restart: on-failure
 
-  firebird:
-    image: jacobalberty/firebird:v3.0
-    container_name: firebird_db
-    restart: always
-    ports:
-      - "3050:3050"
-    environment:
-      - ISC_PASSWORD=masterkey
-      - TZ=Europe/Moscow
-    volumes:
-      - ./fbdata:/firebird/data
-      - ./fbbackup:/firebird/backup
+  # firebird:
+  #   image: jacobalberty/firebird:v3.0
+  #   container_name: firebird_db
+  #   restart: always
+  #   ports:
+  #     - "3050:3050"
+  #   environment:
+  #     - ISC_PASSWORD=masterkey
+  #     - TZ=Europe/Moscow
+  #   volumes:
+  #     - ./fbdata:/firebird/data
+  #     - ./fbbackup:/firebird/backup
 
