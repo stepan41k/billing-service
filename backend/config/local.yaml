@@ -7,10 +7,10 @@ http_server:
   idle_timeout: 60s
 
 firebird:
-  host: "localhost"
+  host: 192.168.1.22
   port: 3050
-  name: "/var/lib/firebird/data/billing-service.fdb"
-  user: "billing"
+  name: "/C:/Data/maximadb.fdb"
+  user: "SYSDBA"
 
 token:
   access_token_ttl: 15m
