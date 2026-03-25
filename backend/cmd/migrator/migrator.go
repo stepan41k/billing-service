@@ -24,7 +24,7 @@ func Migrate() {
     fmt.Printf("try to up migrate, source url: %s\n", sourceURL)
     fmt.Printf("try to up migrate, migrate path: %s\n", migrationsPath)
 
-    m, err := migrate.New(sourceURL, "firebirdsql://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
+    m, err := migrate.New(sourceURL, "firebird://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
     if err != nil {
         log.Fatal(err)
     }
