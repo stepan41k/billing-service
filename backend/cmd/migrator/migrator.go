@@ -18,11 +18,13 @@ func Migrate() {
 
     fmt.Println(dsn)
 
-    migrationsPath := os.Getenv("MIGRATIONS_PATH") 
-
+    migrationsPath := os.Getenv("MIGRATIONS_PATH")
+    sourceURL := "file://"+migrationsPath
+    
+    fmt.Printf("try to up migrate, source url: %s", sourceURL)
     fmt.Printf("try to up migrate, migrate path: %s", migrationsPath)
 
-    m, err := migrate.New("file://"+migrationsPath, "firebirdsql://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
+    m, err := migrate.New(sourceURL, "firebirdsql://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
     if err != nil {
         log.Fatal(err)
     }
