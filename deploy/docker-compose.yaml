@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: go_backend
     # restart: always
-    network_mode: "host"
+    # network_mode: "host"
     extra_hosts:
       - "firebird-server:${DB_HOST}"
     environment:
