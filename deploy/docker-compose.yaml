@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: go_backend
     # restart: always
+    network_mode: "host"
     extra_hosts:
       - "firebird-server:${DB_HOST}"
     environment:
@@ -19,7 +20,7 @@ services:
       - CONFIG_FILE=/app/config/local.yaml
       - MIGRATIONS_PATH=/app/migrations
 
-      - DATABASE_URL=SYSDBA:sysdba@192.168.1.22:3050/C:/Data/maximadb.fdb
+      - DATABASE_URL=SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb
 
       - ACCESS_SECRET=технолоджи1
       - REFRESH_SECRET=технолоджи2
