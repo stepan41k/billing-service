@@ -29,6 +29,8 @@ type App struct {
 
 func New(cfg *config.Config, log *zap.Logger) (*App, error) {
 
+	fmt.Println(cfg.FireBird.DSN())
+	
 	repository, err := firebird.NewDB(cfg.FireBird.DSN())
 	if err != nil {
 		return nil, err
