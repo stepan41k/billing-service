@@ -15,12 +15,13 @@ import (
 
 func Migrate() {
     dsn := os.Getenv("DATABASE_URL")
-    // Путь к папке, например, "/app/migrations"	
+
+    fmt.Println(dsn)
+
     migrationsPath := os.Getenv("MIGRATIONS_PATH") 
 
     fmt.Printf("try to up migrate, migrate path: %s", migrationsPath)
 
-    // В golang-migrate путь должен начинаться с file://
     m, err := migrate.New("file://"+migrationsPath, "firebirdsql://"+dsn)
     if err != nil {
         log.Fatal(err)
