@@ -22,7 +22,7 @@ func Migrate() {
 
     fmt.Printf("try to up migrate, migrate path: %s", migrationsPath)
 
-    m, err := migrate.New("file://"+migrationsPath, "firebirdsql://"+dsn)
+    m, err := migrate.New("file://"+migrationsPath, "firebirdsql://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
     if err != nil {
         log.Fatal(err)
     }
