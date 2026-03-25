@@ -14,7 +14,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
-      - DB_URL=firebird-server
+      # - DB_URL=firebird-server
 
       - CONFIG_FILE=/app/config/local.yaml
       - MIGRATIONS_PATH=/app/migrations
