@@ -18,7 +18,7 @@ services:
       - FB_NAME=${FB_NAME}
       - FB_PORT=${FB_PORT}
       # Settings for the application
-      - CONFIG_FILE=/app/config/docker.yaml
+      - CONFIG_PATH=/app/config/docker.yaml
       - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
       - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
     ports:
