@@ -12,7 +12,7 @@ services:
       - "firebird-server:${FB_HOST}"
     environment:
       # Settings for FireBird databas
-      - FB_HOST=firebird-server
+      - FB_HOST=${FB_HOST}
       - FB_USER=${FB_USER}
       - FB_PASSWORD=${FB_PASSWORD}
       - FB_NAME=${FB_NAME}
