@@ -18,8 +18,6 @@ import type {
   SpeedTestResult, NetworkEvent, AppNotification,
 } from '@/types';
 
-// ─── config ──────────────────────────────────────────────────────────────────
-
 const BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
   : '/api';
@@ -29,8 +27,6 @@ const MAX_RETRIES        = 3;
 const BASE_DELAY_MS      = 500;
 const MAX_DELAY_MS       = 16_000;
 const MAX_CONSECUTIVE_AUTH_FAILURES = 3;
-
-// ─── error class ─────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
   constructor(
@@ -43,8 +39,6 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
 
 /**
  * Race a fetch Promise against a timeout.
@@ -109,7 +103,6 @@ function retryDelay(attempt: number, retryAfterMs?: number): number {
   return Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS) + Math.random() * 500;
 }
 
-// ─── consecutive-auth gate ───────────────────────────────────────────────────
 // Prevents infinite redirect loops when the server returns repeated 401s
 // even though the token looks valid (server-side auth outage / KMS hiccup).
 // Analogous to Claude Code's consecutiveAuthFailures threshold.
@@ -121,8 +114,6 @@ function handleAuthFailure(): never {
   window.location.href = '/login';
   throw new ApiError(401, 'Unauthorized');
 }
-
-// ─── core request with retry ─────────────────────────────────────────────────
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Fast-path: if the stored token is already expired, redirect before wasting a round-trip.
@@ -197,51 +188,42 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   throw new ApiError(0, 'Max retries exceeded');
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authApi = {
   login:    (payload: LoginPayload):    Promise<AuthResponse>    => request('/auth/login',    { method: 'POST', body: JSON.stringify(payload) }),
   register: (payload: RegisterPayload): Promise<RegisterResponse> => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
 };
 
-// ─── Profile ──────────────────────────────────────────────────────────────────
 export const profileApi = {
   get: (): Promise<User> => request('/profile'),
 };
 
-// ─── Balance ──────────────────────────────────────────────────────────────────
 export const balanceApi = {
   get: (): Promise<Balance> => request('/profile/balance'),
 };
 
-// ─── Contracts ────────────────────────────────────────────────────────────────
 export const contractsApi = {
   list: (): Promise<Contract[]> => request('/profile/contracts'),
 };
 
-// ─── Payments ─────────────────────────────────────────────────────────────────
 export const paymentsApi = {
   list: (): Promise<Payment[]> => request('/profile/payments'),
 };
 
-// ─── Support ──────────────────────────────────────────────────────────────────
 export const supportApi = {
   list:   ():                                    Promise<SupportTicket[]> => request('/support/tickets'),
   create: (subject: string, text: string):       Promise<SupportTicket>  => request('/support/tickets',              { method: 'POST', body: JSON.stringify({ subject, text }) }),
   reply:  (ticketId: number, text: string):      Promise<SupportTicket>  => request(`/support/tickets/${ticketId}/reply`, { method: 'POST', body: JSON.stringify({ text }) }),
 };
 
-// ─── SpeedTest ────────────────────────────────────────────────────────────────
 export const speedTestApi = {
   history: ():                      Promise<SpeedTestResult[]> => request('/speedtest/history'),
   run:     ():                      Promise<SpeedTestResult>   => request('/speedtest/run', { method: 'POST' }),
 };
 
-// ─── Network ──────────────────────────────────────────────────────────────────
 export const networkApi = {
   events: (): Promise<NetworkEvent[]> => request('/network/events'),
 };
 
-// ─── Notifications ────────────────────────────────────────────────────────────
 export const notificationsApi = {
   list:       ():                            Promise<AppNotification[]>   => request('/notifications'),
   markRead:   (id: number):                  Promise<{ success: boolean }> => request(`/notifications/${id}/read`,   { method: 'PATCH' }),

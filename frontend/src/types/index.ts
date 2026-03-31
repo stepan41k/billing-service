@@ -1,4 +1,3 @@
-// ─── Domain types ─────────────────────────────────────────────────────────────
 
 export interface User {
   id: number
@@ -92,8 +91,6 @@ export interface AppNotification {
   link?: string
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
 export interface LoginPayload {
   login: string
   password: string
@@ -119,8 +116,6 @@ export interface RegisterResponse {
   success: boolean
   message?: string
 }
-
-// ─── Navigation ───────────────────────────────────────────────────────────────
 
 export interface NavItem {
   label: string

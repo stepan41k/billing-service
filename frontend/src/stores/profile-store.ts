@@ -18,8 +18,9 @@ export const useProfileStore = create<ProfileState>((set) => ({
     try {
       const user = await ProfileService.fetch();
       set({ user, loading: false });
-    } catch {
-      set({ loading: false });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Ошибка загрузки профиля'
+      set({ error: message, loading: false })
     }
   },
 }));

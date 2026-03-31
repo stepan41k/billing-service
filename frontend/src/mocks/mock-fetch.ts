@@ -71,7 +71,6 @@ const routes: RouteHandler[] = [
     }
     return null;
   },
-  // Profile
   (url) => url.pathname === '/api/profile' ? json(MOCK_USER) : null,
   (url) => url.pathname === '/api/profile/balance' ? json(MOCK_BALANCE) : null,
   (url) => url.pathname === '/api/profile/contracts' ? json(MOCK_CONTRACTS) : null,
@@ -97,14 +96,11 @@ const routes: RouteHandler[] = [
     }
     return null;
   },
-  // SpeedTest
   (url) => url.pathname === '/api/speedtest/history' ? json(MOCK_SPEEDTEST) : null,
   (url, init) => url.pathname === '/api/speedtest/run' && init?.method === 'POST'
     ? json({ id: Date.now(), downloadMbps: 490 + Math.random() * 20, uploadMbps: 90 + Math.random() * 10, pingMs: 7 + Math.floor(Math.random() * 5), createdAt: new Date().toISOString() })
     : null,
-  // Network
   (url) => url.pathname === '/api/network/events' ? json(MOCK_NETWORK_EVENTS) : null,
-  // Notifications
   (url) => url.pathname === '/api/notifications' ? json(MOCK_NOTIFICATIONS) : null,
   (url, init) => {
     const m = url.pathname.match(/^\/api\/notifications\/(\d+)\/read$/);
