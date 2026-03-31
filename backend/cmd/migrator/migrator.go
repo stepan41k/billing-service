@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"log"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/firebird" // Драйвер БД
@@ -12,7 +13,12 @@ import (
 
 func Migrate() {
 	cfgFireBird := config.MustLoadMigration()
-	sourceURL := "file:///app/migrations"
+	migrationPath := os.Getenv("MIGRATIONS_PATH")
+	if migrationPath == "" {
+		migrationPath = "/app/migrations"
+	}
+
+	sourceURL := "file://" + migrationPath
 	databaseURL := "firebirdsql://" + cfgFireBird.DSN()
 
 	log.Printf("INFO: FireBird URL: %s; source URL: %s", databaseURL, sourceURL)
