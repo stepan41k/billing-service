@@ -42,7 +42,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Vite production build
-        # .env не пушится — все переменные передаются явно здесь
+        # .env не пушится — все переменные передаются явно
         run: npm run build
         env:
           VITE_USE_MOCKS: 'false'
@@ -50,7 +50,7 @@ jobs:
           VITE_ENV: 'production'
 
   docker-build:
-    name: Docker image build
+    name: Docker image build + nginx validate
     runs-on: ubuntu-latest
     needs: typecheck-and-build
 
@@ -65,9 +65,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          # load: true — загружает образ в локальный daemon,
+          # иначе docker run не найдёт его (BuildKit изолирован)
+          load: true
           push: false
-          tags: billing-frontend:ci-${{ github.sha }}
-          # .env не пушится — build-args передаются явно
+          tags: billing-frontend:ci
           build-args: |
             VITE_USE_MOCKS=false
             VITE_API_URL=
@@ -80,5 +82,5 @@ jobs:
           docker run --rm \
             -e BACKENDURL=http://localhost:8080 \
             --entrypoint /bin/sh \
-            billing-frontend:ci-${{ github.sha }} \
+            billing-frontend:ci \
             -c "nginx -t 2>&1"
