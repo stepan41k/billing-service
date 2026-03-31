@@ -9,24 +9,18 @@ services:
     # restart: always
     # network_mode: "host"
     extra_hosts:
-      - "firebird-server:${DB_HOST}"
+      - "firebird-server:${FB_HOST}"
     environment:
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_PORT=${DB_PORT}
-      # - DB_URL=firebird-server
-
-      - CONFIG_FILE=/app/config/local.yaml
-      - MIGRATIONS_PATH=/app/migrations
-
-      - DATABASE_URL=SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb
-
-      - ACCESS_SECRET=технолоджи1
-      - REFRESH_SECRET=технолоджи2
-    # depends_on:
-    #   migrator:
-    #     condition: service_completed_successfully
+      # Settings for FireBird databas
+      - FB_HOST=firebird-server
+      - FB_USER=${FB_USER}
+      - FB_PASSWORD=${FB_PASSWORD}
+      - FB_NAME=${FB_NAME}
+      - FB_PORT=${FB_PORT}
+      # Settings for the application
+      - CONFIG_FILE=/app/config/docker.yaml
+      - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
+      - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
     ports:
       - "8080:8080"
 

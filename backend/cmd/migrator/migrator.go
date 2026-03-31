@@ -1,35 +1,26 @@
 package migrator
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/firebird" // Драйвер БД
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // ЭТОГО ИМПОРТА НЕ ХВАТАЛО
 	_ "github.com/nakagami/firebirdsql"
-    _ "github.com/golang-migrate/migrate/v4/database/firebird" // Драйвер БД
-    _ "github.com/golang-migrate/migrate/v4/source/file"     // ЭТОГО ИМПОРТА НЕ ХВАТАЛО
+	"github.com/stepan41k/billing-service/internal/config"
 )
 
-
-
 func Migrate() {
-    dsn := os.Getenv("DATABASE_URL")
+	cfgFireBird := config.MustLoadMigration()
+	migrationPath := "./migration"
+	log.Printf("INFO: FireBird DSN: %s; migration path: %s", cfgFireBird.DSN(), migrationPath)
 
-    fmt.Println(dsn)
+	m, err := migrate.New("file:///app/migration/", "firebirdsql://"+cfgFireBird.DSN())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    migrationsPath := os.Getenv("MIGRATIONS_PATH")
-    sourceURL := "file://"+migrationsPath
-    
-    fmt.Printf("try to up migrate, source url: %s\n", sourceURL)
-    fmt.Printf("try to up migrate, migrate path: %s\n", migrationsPath)
-
-    m, err := migrate.New(sourceURL, "firebird://SYSDBA:masterkey@192.168.1.22:3050/C:/Data/maximadb.fdb")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-        log.Fatal(err)
-    }
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal(err)
+	}
 }

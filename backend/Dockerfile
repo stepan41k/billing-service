@@ -20,6 +20,6 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/config ./config
 
-EXPOSE 8010
+EXPOSE 8080
 
 CMD ["./main"]
