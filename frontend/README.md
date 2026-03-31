@@ -1,190 +1,231 @@
-# Максима - Личный кабинет (Frontend)
+# Максима — Личный кабинет
 
-Фронтенд личного кабинета абонента для провайдера «Максима» (г. Великий Новгород).  
-Работает полностью на моках - бэкенд не требуется для запуска.
+> Веб-приложение для абонентов интернет-провайдера «Максима» (г. Великий Новгород).  
+> Позволяет управлять договорами, просматривать историю платежей, обращаться в поддержку и следить за состоянием сети.
 
-## Стек
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)
+![CI](https://github.com/stepan41k/billing-service/actions/workflows/frontend-ci.yml/badge.svg)
 
-- **React 18** + **TypeScript**
-- **Vite** - сборка и dev-сервер
-- **Tailwind CSS** - стилизация (кастомная дизайн-система light/dark)
-- **Zustand** - управление состоянием (11 сторов)
-- **framer-motion** - анимации переходов и списков
-- **lucide-react** - иконки
-- **Docker** + **nginx** - продакшн-деплой
+---
+
+## Содержание
+
+- [Быстрый старт](#быстрый-старт)
+- [Переменные окружения](#переменные-окружения)
+- [Страницы](#страницы)
+- [Архитектура](#архитектура)
+- [API](#api)
+- [Деплой](#деплой)
+- [CI/CD](#cicd)
+
+---
 
 ## Быстрый старт
 
-```bash
-# Dev-режим
-npm install
-npm run dev          # http://localhost:5173
+### Вариант 1 — только фронтенд (мок-режим)
 
-# Docker
-docker-compose up --build   # http://localhost:3000
+Бэкенд не нужен. Все запросы перехватываются прямо в браузере.
+
+```bash
+cp .env.example .env      # VITE_USE_MOCKS=true уже выставлен
+npm install
+npm run dev               # http://localhost:5173
 ```
 
 **Тестовый аккаунт:** `ivanov` / `password123`
 
-## Архитектура
+---
 
-Слоёная структура без кросс-импортов между уровнями:
+### Вариант 2 — фронтенд в Docker (без бэка)
 
-```
-types → api/client → services → stores → components → pages
+```bash
+cp .env.example .env
+docker-compose up --build  # http://localhost:3000
 ```
 
+---
+
+### Вариант 3 — полный стек (frontend + Go backend)
+
+```bash
+cd deploy/
+cp .env.example .env       # заполни FB_HOST, ACCESS_SECRET, REFRESH_SECRET и др.
+docker-compose up --build  # frontend :8080, backend внутри сети
 ```
-src/
-├── types/           # Доменные типы (User, Contract, Payment...)
-├── api/client.ts    # HTTP-клиент, все запросы через fetch
-├── services/        # Тонкие обёртки над api (AuthService, ProfileService...)
-├── stores/          # Zustand-сторы (auth, profile, balance, contracts...)
-├── lib/             # Утилиты (token - in-memory JWT, utils - cn helper)
-├── mocks/           # Fetch-интерцептор с regex-роутингом
-├── components/      # Layout, Sidebar, Header, UI-компоненты
-└── pages/           # Страницы приложения
-```
+
+---
+
+## Переменные окружения
+
+Создай `.env` из шаблона `.env.example`:
+
+| Переменная       | Описание                                                                                        | Пример                  |
+| ---------------- | ----------------------------------------------------------------------------------------------- | ----------------------- |
+| `VITE_USE_MOCKS` | `true` — моки в браузере, `false` — реальный бэк                                                | `true`                  |
+| `VITE_API_URL`   | Адрес бэка для локальной разработки. В Docker **оставь пустым** — nginx сам проксирует `/api/*` | `http://localhost:8080` |
+| `VITE_ENV`       | Окружение сборки                                                                                | `development`           |
+| `BACKEND_URL`    | Адрес бэка внутри Docker-сети (подставляется в nginx через `envsubst` в рантайме)               | `http://backend:8080`   |
+
+> `BACKEND_URL` подставляется в nginx **без пересборки образа** — достаточно перезапустить контейнер с новой переменной.
+
+---
 
 ## Страницы
 
-| Страница      | Путь             | Описание                                    |
-| ------------- | ---------------- | ------------------------------------------- |
-| Login         | `/login`         | Авторизация + canvas-анимация сети          |
-| Register      | `/register`      | Регистрация нового абонента                 |
-| Profile       | `/profile`       | Данные пользователя + карточка баланса      |
-| Contracts     | `/contracts`     | Список договоров (expand/collapse)          |
-| Payments      | `/payments`      | История платежей с цветовыми иконками       |
-| Support       | `/support`       | Тикеты техподдержки + чат                   |
-| SpeedTest     | `/speedtest`     | Тест скорости (3 метрики) + история         |
-| NetworkStatus | `/network`       | Timeline сетевых событий                    |
-| Notifications | `/notifications` | Уведомления (непрочитанные + mark all read) |
+| Страница      | Путь               | Описание                                               |
+| ------------- | ------------------ | ------------------------------------------------------ |
+| Вход          | `/#/login`         | Авторизация с анимированным фоном сети                 |
+| Регистрация   | `/#/register`      | Создание нового аккаунта                               |
+| Профиль       | `/#/profile`       | Личные данные + карточка баланса                       |
+| Договоры      | `/#/tariffs`       | Список активных договоров с деталями (expand/collapse) |
+| Платежи       | `/#/payments`      | История операций с цветовыми иконками по типу          |
+| Поддержка     | `/#/support`       | Тикеты + встроенный чат с ответами                     |
+| Тест скорости | `/#/speedtest`     | Замер download / upload / ping + история               |
+| Сеть          | `/#/network`       | Timeline сетевых событий: аварии, обслуживание         |
+| Уведомления   | `/#/notifications` | Список уведомлений, отметка прочитанных                |
 
-## Моки
+---
 
-Все API-запросы перехватываются клиентским fetch-интерцептором (`src/mocks/mock-fetch.ts`).  
-Бэкенд не нужен - моки работают прямо в браузере.
+## Архитектура
 
-### Замоканные эндпоинты
+Слоёная структура — данные текут строго в одном направлении, кросс-импортов между слоями нет:
 
-| Метод | Путь                             | Описание                           |
-| ----- | -------------------------------- | ---------------------------------- |
-| POST  | `/api/auth/login`                | Авторизация (ivanov / password123) |
-| POST  | `/api/auth/register`             | Регистрация (всегда success)       |
-| GET   | `/api/profile`                   | Данные пользователя                |
-| GET   | `/api/profile/balance`           | Баланс                             |
-| GET   | `/api/profile/contracts`         | Список договоров                   |
-| GET   | `/api/profile/payments`          | История платежей                   |
-| GET   | `/api/support/tickets`           | Список тикетов                     |
-| POST  | `/api/support/tickets`           | Создание тикета                    |
-| POST  | `/api/support/tickets/:id/reply` | Ответ в тикете                     |
-| GET   | `/api/speedtest/history`         | История замеров скорости           |
-| POST  | `/api/speedtest/run`             | Запуск замера (задержка 2с)        |
-| GET   | `/api/network/events`            | Сетевые события                    |
-| GET   | `/api/notifications`             | Уведомления                        |
-| PATCH | `/api/notifications/:id/read`    | Пометить как прочитанное           |
-| PATCH | `/api/notifications/read-all`    | Пометить все как прочитанные       |
-
-## Подключение бэкенда
-
-### 1. Отключить моки
-
-В `src/main.tsx` убрать (или закомментировать) вызов:
-
-```typescript
-// import { installMockFetch } from '@/mocks/mock-fetch';
-// installMockFetch();
+```text
+types → api/client → services → stores → components → pages
 ```
 
-### 2. Настроить proxy для dev-сервера
-
-В `vite.config.ts` добавить:
-
-```typescript
-export default defineConfig({
-  // ...
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8010',
-        changeOrigin: true,
-      },
-    },
-  },
-})
+```text
+src/
+├── types/            # Доменные типы: User, Contract, Payment, ...
+├── api/
+│   └── client.ts     # HTTP-клиент: fetch + ApiError + 401 → logout + redirect
+├── services/         # Тонкие обёртки над api (AuthService, ProfileService, ...)
+├── stores/           # 11 Zustand-сторов (auth, profile, balance, contracts, ...)
+├── lib/
+│   ├── token.ts      # In-memory JWT — не хранится в localStorage
+│   └── utils.ts      # cn(), formatCurrency(), formatDate()
+├── mocks/
+│   └── mock-fetch.ts # Fetch-интерцептор с regex-роутингом, работает в браузере
+├── components/       # Layout, Sidebar, Header, UI-kit (Button, Card, Input, ...)
+└── pages/            # Страницы приложения
 ```
 
-### 3. Вернуть proxy в nginx (Docker)
+### Как работает переключение мок / бэк
 
-В `docker/nginx.conf` добавить блок перед кешированием статики:
+```text
+VITE_USE_MOCKS=true   → main.tsx динамически импортирует mock-fetch.ts
+                         все /api/* запросы перехватываются в браузере
+                         бэкенд не нужен, mock-fetch не попадает в prod-бандл
 
-```nginx
-# Proxy API to backend (Go on port 8010)
-location /api/ {
-    proxy_pass http://backend:8010;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
+VITE_USE_MOCKS=false  → mock-fetch.ts исключается из бандла
+                         запросы уходят на реальный бэк через nginx proxy
 ```
 
-### 4. Добавить backend в docker-compose.yml
+---
 
-```yaml
-services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - '3000:80'
-    depends_on:
-      - backend
-    restart: unless-stopped
+## API
 
-  backend:
-    build:
-      context: ../billing-service
-      dockerfile: Dockerfile
-    ports:
-      - '8010:8010'
-    restart: unless-stopped
-```
+В dev-режиме Vite проксирует `/api/*` на `VITE_API_URL`. В Docker это делает nginx.
 
-### 5. Контракт API
+### Аутентификация
 
-Фронтенд ожидает, что бэкенд вернёт данные в формате, описанном в `src/types/index.ts`.  
-Основные моменты:
+| Метод  | Путь                 | Тело запроса          | Ответ                                      |
+| ------ | -------------------- | --------------------- | ------------------------------------------ |
+| `POST` | `/api/auth/login`    | `{ login, password }` | `{ access_token, refresh_token, profile }` |
+| `POST` | `/api/auth/register` | `{ login, password }` | `{ success: true }`                        |
 
-- **Авторизация**: POST `/api/auth/login` принимает `{ login, password }`, возвращает `{ token }` (JWT)
-- **Токен**: передаётся в заголовке `Authorization: Bearer <token>`
-- **Ошибки**: ожидается `{ message: string }` в теле ответа при HTTP >= 400
-- **Даты**: ISO 8601 строки (например `2026-03-23T10:00:00Z`)
-- **Деньги**: `amount` в числе (копейки не нужны, передаётся как float - `1240.50`)
+### Профиль и финансы
 
-### 6. Что может потребовать доработки
+| Метод | Путь                     | Описание            |
+| ----- | ------------------------ | ------------------- |
+| `GET` | `/api/profile`           | Данные пользователя |
+| `GET` | `/api/profile/balance`   | Текущий баланс      |
+| `GET` | `/api/profile/contracts` | Список договоров    |
+| `GET` | `/api/profile/payments`  | История платежей    |
 
-- **Пагинация** - сейчас все списки загружаются целиком. Для больших объёмов добавить `?page=1&limit=20`
-- **Фильтрация платежей** - по дате, типу, договору (на бэке)
-- **Загрузка файлов** - если в тикетах нужны вложения
-- **WebSocket** - для real-time уведомлений вместо polling
-- **Смена тарифа / пароля** - кнопки есть в UI, но эндпоинты не реализованы
-- **Speed Test** - сейчас мок генерирует случайные числа, на проде нужна реальная логика измерения
+### Поддержка
 
-## Сборка
+| Метод  | Путь                             | Описание          |
+| ------ | -------------------------------- | ----------------- |
+| `GET`  | `/api/support/tickets`           | Список тикетов    |
+| `POST` | `/api/support/tickets`           | Создать тикет     |
+| `POST` | `/api/support/tickets/:id/reply` | Ответить в тикете |
+
+### Прочее
+
+| Метод   | Путь                          | Описание                  |
+| ------- | ----------------------------- | ------------------------- |
+| `GET`   | `/api/speedtest/history`      | История замеров скорости  |
+| `POST`  | `/api/speedtest/run`          | Запустить замер           |
+| `GET`   | `/api/network/events`         | Сетевые события           |
+| `GET`   | `/api/notifications`          | Уведомления               |
+| `PATCH` | `/api/notifications/:id/read` | Пометить прочитанным      |
+| `PATCH` | `/api/notifications/read-all` | Пометить все прочитанными |
+
+### Соглашения
+
+- **Авторизация** — заголовок `Authorization: Bearer <access_token>`, токен хранится in-memory
+- **Ошибки** — `{ message: string }` при HTTP ≥ 400; `401` вызывает автоматический logout
+- **Деньги** — `float` в рублях (`1240.50`)
+- **Даты** — ISO 8601 (`2026-03-23T10:00:00Z`)
+
+---
+
+## Деплой
+
+### Только фронтенд
 
 ```bash
-npm run build        # TypeScript check + Vite build → dist/
+cd frontend/
+docker-compose up --build   # http://localhost:3000
 ```
 
-Результат: ~326 KB JS (106 KB gzip), ~21 KB CSS (5 KB gzip).
+### Полный стек
 
-## Структура Docker
+```bash
+cd deploy/
+cp .env.example .env
+docker-compose up --build
+```
 
+Фронтенд запускается только после прохождения healthcheck бэка (`/health`).
+
+### Переключение окружения без пересборки
+
+```bash
+BACKEND_URL=http://new-backend:8080 docker-compose up
 ```
-Dockerfile              # Multi-stage: node:20-alpine (build) → nginx:alpine (serve)
-docker-compose.yml      # Только frontend, порт 3000
-docker/nginx.conf       # gzip, SPA fallback, кеш статики, security headers
-.dockerignore           # node_modules, dist, .git
+
+---
+
+## CI/CD
+
+GitHub Actions запускается **только при изменениях в `frontend/`** или в самом workflow-файле.
+
+```text
+.github/workflows/frontend-ci.yml
 ```
+
+| Шаг             | Что проверяет                      |
+| --------------- | ---------------------------------- |
+| `tsc --noEmit`  | Ошибки TypeScript                  |
+| `npm run build` | Vite-сборка с prod-флагами         |
+| `docker build`  | Образ собирается без ошибок        |
+| `nginx -t`      | Конфиг nginx валиден внутри образа |
+
+---
+
+## Стек
+
+| Категория    | Технология                                              |
+| ------------ | ------------------------------------------------------- |
+| UI-фреймворк | React 18 + TypeScript 5.5                               |
+| Сборка       | Vite 5.4                                                |
+| Стили        | Tailwind CSS 3 (кастомная дизайн-система, light / dark) |
+| Состояние    | Zustand 5 (11 сторов)                                   |
+| Анимации     | framer-motion 11                                        |
+| Иконки       | lucide-react                                            |
+| Веб-сервер   | nginx:alpine — gzip, SPA fallback, security headers     |
+| Контейнер    | Docker multi-stage: `node:22-alpine` → `nginx:alpine`   |
