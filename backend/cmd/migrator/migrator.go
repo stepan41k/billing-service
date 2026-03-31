@@ -15,7 +15,7 @@ func Migrate() {
 	migrationPath := "./migration"
 	log.Printf("INFO: FireBird DSN: %s; migration path: %s", cfgFireBird.DSN(), migrationPath)
 
-	m, err := migrate.New("file:///app/migration/", "firebirdsql://"+cfgFireBird.DSN())
+	m, err := migrate.New("file:///app/migrations", "firebirdsql://"+cfgFireBird.DSN())
 	if err != nil {
 		log.Fatal(err)
 	}
