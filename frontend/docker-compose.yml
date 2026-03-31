@@ -1,8 +1,21 @@
+# Запуск из frontend/:
+#   cp .env.example .env   # заполнить .env
+#   docker compose up --build
+
 services:
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # VITE_USE_MOCKS и VITE_ENV вшиваются в бандл при сборке
+        VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+        VITE_ENV:       ${VITE_ENV:-development}
+        # VITE_API_URL намеренно пустой — nginx сам проксирует через BACKEND_URL
+        VITE_API_URL:   ""
     ports:
-      - '3000:80'
+      - "${FRONTEND_PORT:-80}:80"
+    environment:
+      # BACKEND_URL передаётся в nginx как переменная окружения уже в рантайме
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:8080}
     restart: unless-stopped

@@ -38,9 +38,9 @@ export default function Profile() {
     { icon: User, label: 'Логин', value: user.login },
     { icon: Mail, label: 'Email', value: user.email },
     { icon: Phone, label: 'Телефон', value: user.phone },
-    { icon: FileText, label: 'Договор', value: `#${user.contract}` },
-    { icon: Clock, label: 'Последняя активность', value: user.lastActivity },
-    { icon: User, label: 'Клиент', value: `#${user.client}` },
+    { icon: FileText, label: 'Договор', value: `#${user.contractNumber}` },
+    { icon: Clock, label: 'Последняя активность', value: '—' },
+    { icon: User, label: 'Клиент', value: `#${user.clientNumber}` },
   ];
 
   return (
@@ -48,7 +48,7 @@ export default function Profile() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">Профиль</h1>
-          {user.readOnly && <Badge variant="warning">Только чтение</Badge>}
+          {user.isReadOnly && <Badge variant="warning">Только чтение</Badge>}
         </div>
 
         {/* Balance card */}

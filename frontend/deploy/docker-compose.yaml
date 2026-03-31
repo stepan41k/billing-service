@@ -1,0 +1,44 @@
+# deploy/docker-compose.yaml
+# Запуск: cd deploy && docker compose up --build
+#
+# .env рядом с этим файлом (или export переменные):
+#   VITE_API_URL=          # пусто = nginx proxy (рекомендуется)
+#   VITE_USE_MOCKS=false   # true = использовать моки
+#   FRONTEND_PORT=80       # порт на хосте
+
+services:
+
+  backend:
+    build:
+      context: ../backend
+    env_file: ../.env          # backend env (FB_HOST, ACCESS_SECRET, etc.)
+    networks:
+      - app-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        # Пустое VITE_API_URL = запросы идут через nginx proxy внутри контейнера
+        VITE_API_URL:    ${VITE_API_URL:-}
+        VITE_USE_MOCKS:  ${VITE_USE_MOCKS:-false}
+        VITE_ENV:        ${VITE_ENV:-production}
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app-net
+    restart: unless-stopped
+
+networks:
+  app-net:
+    driver: bridge

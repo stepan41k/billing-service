@@ -13,7 +13,8 @@ const typeConfig: Record<NetworkEvent['type'], { icon: typeof Wrench; label: str
   maintenance: { icon: Wrench, label: 'Работы', variant: 'warning', color: 'text-warning bg-warning/10' },
   outage: { icon: AlertTriangle, label: 'Авария', variant: 'destructive', color: 'text-destructive bg-destructive/10' },
   resolved: { icon: CheckCircle, label: 'Решено', variant: 'success', color: 'text-success bg-success/10' },
-  info: { icon: Info, label: 'Информация', variant: 'default', color: 'text-primary bg-primary/10' },
+  degraded: { icon: Info, label: 'Информация', variant: 'default', color: 'text-primary bg-primary/10' },
+  info:        { icon: Info,         label: 'Инфо',      variant: 'default'     as const, color: 'text-primary bg-primary/10' },
 };
 
 const container = {
@@ -66,9 +67,9 @@ export default function NetworkStatus() {
                         </div>
                         <p className="text-sm text-muted-foreground">{ev.description}</p>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                          <span>Начало: {formatDateTime(ev.startAt)}</span>
-                          {ev.endAt && <span>Конец: {formatDateTime(ev.endAt)}</span>}
-                          <span>Район: {ev.affectedArea}</span>
+                          <span>Начало: {formatDateTime(ev.startedAt)}</span>
+                          {ev.resolvedAt && <span>Конец: {formatDateTime(ev.resolvedAt)}</span>}
+                          <span>Район: {ev.description}</span>
                         </div>
                       </div>
                     </div>
