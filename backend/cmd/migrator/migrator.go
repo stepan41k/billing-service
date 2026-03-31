@@ -12,10 +12,11 @@ import (
 
 func Migrate() {
 	cfgFireBird := config.MustLoadMigration()
-	migrationPath := "./migration"
-	log.Printf("INFO: FireBird DSN: %s; migration path: %s", cfgFireBird.DSN(), migrationPath)
+	sourceURL := "file:///app/migrations"
+	databaseURL := "firebirdsql://" + cfgFireBird.DSN()
 
-	m, err := migrate.New("file:///app/migrations", "firebirdsql://"+cfgFireBird.DSN())
+	log.Printf("INFO: FireBird URL: %s; source URL: %s", databaseURL, sourceURL)
+	m, err := migrate.New(sourceURL, databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
