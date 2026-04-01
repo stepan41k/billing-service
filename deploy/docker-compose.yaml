@@ -12,7 +12,7 @@ services:
       - "firebird-server:${FB_HOST}"
     environment:
       # Settings for FireBird databas
-      - FB_HOST=${FB_HOST}
+      - FB_HOST=firebird-server
       - FB_USER=${FB_USER}
       - FB_PASSWORD=${FB_PASSWORD}
       - FB_NAME=${FB_NAME}
@@ -36,21 +36,9 @@ services:
     depends_on:
       - backend
 
-  # migrator:
-  #   image: migrate/migrate
-  #   container_name: go_migrator
-  #   extra_hosts:
-  #     - "firebird_server:${DB_HOST}"
-  #   volumes:
-  #     - ../backend/migrations:/migrations
-  #   command:
-  #     - path=/migrations/
-  #     - database=firebird://${DB_USER}:${DB_PASSWORD}@firebird-server:${DB_PORT}${DB_NAME}
-  #     - up
-  #   restart: on-failure
-
+  # You can run local Container for FireBird database
   # firebird:
-  #   image: jacobalberty/firebird:v3.0
+  #   image: jacobalberty/firebird:v5.0
   #   container_name: firebird_db
   #   restart: always
   #   ports:

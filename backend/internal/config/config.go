@@ -40,7 +40,7 @@ type FireBird struct {
 }
 
 func (f *FireBird) DSN() string {
-	return fmt.Sprintf("%s:%s@%s:%d%s",
+	return fmt.Sprintf("%s:%s@%s:%d/%s",
 		f.User,
 		f.Password,
 		f.Host,
