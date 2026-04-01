@@ -1,17 +1,24 @@
-# deploy/docker-compose.yaml
-# Запуск: cd deploy && docker compose up --build
-#
-# .env рядом с этим файлом (или export переменные):
-#   VITE_API_URL=          # пусто = nginx proxy (рекомендуется)
-#   VITE_USE_MOCKS=false   # true = использовать моки
-#   FRONTEND_PORT=80       # порт на хосте
+version: '3.8'
 
 services:
-
   backend:
     build:
       context: ../backend
-    env_file: ../.env          # backend env (FB_HOST, ACCESS_SECRET, etc.)
+      dockerfile: Dockerfile
+    container_name: go-backend
+    extra_hosts:
+      - "firebird-server:${FB_HOST}"
+    environment:
+      - FB_HOST=firebird-server
+      - FB_USER=${FB_USER}
+      - FB_PASSWORD=${FB_PASSWORD}
+      - FB_NAME=${FB_NAME}
+      - FB_PORT=${FB_PORT}
+      - CONFIG_PATH=app/config/docker.yaml
+      - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
+      - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
+    ports:
+      - "8080:8080"
     networks:
       - app-net
     restart: unless-stopped
@@ -26,17 +33,17 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
       args:
-        # Пустое VITE_API_URL = запросы идут через nginx proxy внутри контейнера
-        VITE_API_URL:    ${VITE_API_URL:-}
-        VITE_USE_MOCKS:  ${VITE_USE_MOCKS:-false}
-        VITE_ENV:        ${VITE_ENV:-production}
+        VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_ENV: ${VITE_ENV:-production}
+    container_name: billing-frontend
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - app-net
     depends_on:
       backend:
         condition: service_healthy
-    networks:
-      - app-net
     restart: unless-stopped
 
 networks:
