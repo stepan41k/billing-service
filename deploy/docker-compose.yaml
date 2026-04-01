@@ -7,7 +7,8 @@ services:
       dockerfile: Dockerfile
     container_name: go_backend
     # restart: always
-    # network_mode: "host"
+    networks:
+      - billing-net
     extra_hosts:
       - "firebird-server:${FB_HOST}"
     environment:
@@ -22,12 +23,30 @@ services:
       - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
       - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
     ports:
-      - "8080:8080"
+      - "8080" # Можно пробросить создать профиль
 
-  #frontend:
+  frontend:
+    build:
+      context: ../frontend/
+      dockerfile: Dockerfile
+      args:
+        # Settings for the frontend
+        - VITE_USE_MOCKS=${VITE_USE_MOCKS}
+        - VITE_API_URL=/api
+        - VITE_ENV=${VITE_ENV}
+    container_name: frontend
+    networks:
+      - billing-net
+    ports:
+      - "80"
+    depends_on:
+      - backend
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy
+    networks:
+      - billing-net
     # restart: always
     ports:
       - "80:80"
@@ -35,6 +54,7 @@ services:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z
     depends_on:
       - backend
+      - frontend
 
   # You can run local Container for FireBird database
   # firebird:
@@ -50,3 +70,6 @@ services:
   #     - ./fbdata:/firebird/data
   #     - ./fbbackup:/firebird/backup
 
+networks:
+  billing-net:
+    driver: bridge
