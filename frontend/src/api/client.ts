@@ -18,9 +18,7 @@ import type {
   SpeedTestResult, NetworkEvent, AppNotification,
 } from '@/types';
 
-const BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api';
+const BASE = import.meta.env.VITE_API_URL || '/api';
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_RETRIES        = 3;
@@ -189,7 +187,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const authApi = {
-  login:    (payload: LoginPayload):    Promise<AuthResponse>    => request('/auth/login',    { method: 'POST', body: JSON.stringify(payload) }),
+  login:    (payload: LoginPayload):    Promise<AuthResponse>    => request('/login',    { method: 'POST', body: JSON.stringify(payload) }),
   register: (payload: RegisterPayload): Promise<RegisterResponse> => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
 };
 
