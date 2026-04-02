@@ -1,7 +1,7 @@
 # Environment
 *.env.local
 .env
-.env.*
+.env
 
 # Scripts / Backups
 *.sh
@@ -19,7 +19,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 # Vite / React
 dist/

@@ -25,7 +25,7 @@ export default function Header() {
           <span className="text-muted-foreground">
             {user.login}
             <span className="mx-2 text-border">|</span>
-            Клиент #{user.client}
+            Клиент #{user.clientNumber}
           </span>
         )}
       </div>

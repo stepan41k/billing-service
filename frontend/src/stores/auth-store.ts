@@ -16,17 +16,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuth: Token.exists(),
   loading: false,
   error: null,
+
   login: async (payload) => {
     set({ loading: true, error: null });
     try {
-      const { token } = await AuthService.login(payload);
-      Token.set(token);
+      const response = await AuthService.login(payload);
+      // Бэкенд возвращает access_token (не token)
+      Token.set(response.access_token);
       set({ isAuth: true, loading: false });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Ошибка входа';
+      const msg = e instanceof Error ? e.message : 'Ошибка авторизации';
       set({ error: msg, loading: false });
     }
   },
+
   register: async (payload) => {
     set({ loading: true, error: null });
     try {
@@ -39,6 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       return false;
     }
   },
+
   logout: () => {
     Token.clear();
     set({ isAuth: false, error: null });

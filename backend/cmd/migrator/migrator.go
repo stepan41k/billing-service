@@ -1,33 +1,55 @@
 package migrator
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/firebird"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/nakagami/firebirdsql"
-    _ "github.com/golang-migrate/migrate/v4/database/firebird" // Драйвер БД
-    _ "github.com/golang-migrate/migrate/v4/source/file"     // ЭТОГО ИМПОРТА НЕ ХВАТАЛО
+	"github.com/stepan41k/billing-service/internal/config"
+	// "github.com/stepan41k/billing-service/internal/config"
 )
 
-
-
 func Migrate() {
-    dsn := os.Getenv("DATABASE_URL")
+	cfgFireBird := config.MustLoadMigration()
+	migrationPath := os.Getenv("MIGRATIONS_PATH")
+	if migrationPath == "" {
+		migrationPath = "/app/migrations"
+	}
+	sourceURL := "file://" + migrationPath
 
-    fmt.Println(dsn)
+	log.Printf("INFO: FireBird DNS - %s; sourceURL - %s", cfgFireBird.DSN(), sourceURL)
 
-    migrationsPath := os.Getenv("MIGRATIONS_PATH") 
+	db, err := sql.Open("firebirdsql", cfgFireBird.DSN())
+	if err != nil {
+		log.Fatalf("ERROR: Не удалось открыть базу: %v", err)
+	}
+	defer db.Close()
 
-    fmt.Printf("try to up migrate, migrate path: %s", migrationsPath)
+	driver, err := firebird.WithInstance(db, &firebird.Config{})
+	if err != nil {
+		log.Fatalf("ERROR: Ошибка создания драйвера мигратора: %v", err)
+	}
 
-    m, err := migrate.New("file://"+migrationsPath, "firebirdsql://"+dsn)
-    if err != nil {
-        log.Fatal(err)
-    }
+	m, err := migrate.NewWithDatabaseInstance(
+		sourceURL,
+		"firebird",
+		driver,
+	)
+	if err != nil {
+		log.Fatalf("ERROR: Ошибка инициализации мигратора: %v", err)
+	}
 
-    if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-        log.Fatal(err)
-    }
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("ERROR: Ошибка при выполнении миграции: %v", err)
+	}
+
+	if err == migrate.ErrNoChange {
+		log.Println("INFO: Миграции не требуются (база актуальна)")
+	} else {
+		log.Println("INFO: Миграции успешно применены!")
+	}
 }

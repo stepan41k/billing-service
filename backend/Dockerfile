@@ -15,11 +15,10 @@ FROM alpine:latest
 
 WORKDIR /app/
 
-COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/main .
-COPY --from=builder /app/.env .
 COPY --from=builder /app/config ./config
+COPY --from=builder /app/main .
+COPY --from=builder /app/migrations ./migrations
 
-EXPOSE 8010
+EXPOSE 8080
 
 CMD ["./main"]

@@ -23,12 +23,12 @@ func main() {
 		log.Fatalf("failed initilizate logger: %s", err.Error())
 	}
 
+	migrator.Migrate()
+
 	application, err := app.New(cfg, logger)
 	if err != nil {
 		logger.Fatal("failed to initialize application", zap.Error(err))
 	}
-
-	migrator.Migrate()
 
 	go func() {
 		application.Run()
