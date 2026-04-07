@@ -22,8 +22,13 @@ services:
       - CONFIG_PATH=/app/config/docker.yaml
       - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
       - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
+      # SSL certificates
+      - SSL_CERT_PATH=/app/certs/server.crt
+      - SSL_KEY_PATH=/app/certs/server.key
+    volumes:
+        - ./certs:/app/certs:ro,z
     ports:
-      - "8080" # Можно пробросить создать профиль
+      - "8443" # Можно пробросить создать профиль
 
   frontend:
     build:
@@ -38,7 +43,7 @@ services:
     networks:
       - billing-net
     ports:
-      - "80"
+      - "443"
     depends_on:
       - backend
 
@@ -49,7 +54,7 @@ services:
       - billing-net
     # restart: always
     ports:
-      - "80:80"
+      - "443:443"
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z
     depends_on:
