@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import {
-  HashRouter,
+  BrowserRouter,
   Routes,
   Route,
   Navigate,
@@ -55,10 +55,10 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <AnimatedRoutes />
       </Suspense>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
