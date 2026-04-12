@@ -6,7 +6,6 @@ services:
       context: ../backend/
       dockerfile: Dockerfile
     container_name: go_backend
-    # restart: always
     networks:
       - billing-net
     extra_hosts:
@@ -19,7 +18,6 @@ services:
       - FB_NAME=${FB_NAME}
       - FB_PORT=${FB_PORT}
       # Settings for the application
-      - CONFIG_PATH=/app/config/docker.yaml
       - ACCESS_SECRET=${BILLING_ACCESS_SECRET}
       - REFRESH_SECRET=${BILLING_REFRESH_SECRET}
       # SSL certificates
@@ -28,7 +26,7 @@ services:
     volumes:
         - ./certs:/app/certs:ro,z
     ports:
-      - "8443:8443" # Можно пробросить создать профиль
+      - "8443:8443"
 
   frontend:
     build:
@@ -54,7 +52,6 @@ services:
     container_name: nginx_proxy
     networks:
       - billing-net
-    # restart: always
     ports:
       - "443:443"
     volumes:
