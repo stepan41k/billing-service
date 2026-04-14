@@ -13,7 +13,7 @@ import (
 
 type ProfileRepository interface {
 	GetProfile(ctx context.Context, login string) (*models.Client, error)
-	CreateProfile(ctx context.Context, newClient models.CreateClient) (*models.Client, error)
+	CreateProfile(ctx context.Context, newClient *models.CreateClient) (*models.Client, error)
 }
 
 type ProfileService struct {
@@ -44,7 +44,7 @@ func (ps *ProfileService) Get(ctx context.Context, login string) (*models.Client
 	return client, nil
 }
 
-func (ps *ProfileService) Create(ctx context.Context, newClient models.CreateClient) (*models.Client, error) {
+func (ps *ProfileService) Create(ctx context.Context, newClient *models.CreateClient) (*models.Client, error) {
 	const op = "service.profile.Create"
 	log := ps.log.With(zap.String("op", op))
 
