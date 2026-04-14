@@ -76,3 +76,21 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 		RefreshToken: refresh,
 	}, client, nil
 }
+
+func (as *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*models.Session, error) {
+	const op = "service.auth.RefreshToken"
+	log := as.log.With(
+		zap.String("op", op),
+	)
+
+	access, refresh, err := jwt.RefreshToken(as.cfg, refreshToken)
+	if err != nil {
+		log.Error("failed to update refresh token", zap.Error(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &models.Session{
+		AccessToken:  access,
+		RefreshToken: refresh,
+	}, nil
+}
