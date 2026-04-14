@@ -20,13 +20,16 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (c *models
 
 	defer func() {
 		if err != nil {
-			_ = tx.Rollback()
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				err = fmt.Errorf("%s: %w", op, rollbackErr)
+			}
 			return
 		}
 
 		commitErr := tx.Commit()
 		if commitErr != nil {
-			err = fmt.Errorf("%s: %w", op, err)
+			err = fmt.Errorf("%s: %w", op, commitErr)
 		}
 	}()
 
@@ -72,7 +75,7 @@ func (fr *FirebirdRepo) GetProfile(ctx context.Context, login string) (c *models
 	return &client, nil
 }
 
-func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.CreateClient) (c *models.Client, err error) {
+func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient *models.CreateClient) (c *models.Client, err error) {
 	const op = "repository.firebird.CreateProfile"
 
 	tx, err := fr.db.BeginTx(ctx, nil)
@@ -82,7 +85,10 @@ func (fr *FirebirdRepo) CreateProfile(ctx context.Context, newClient models.Crea
 
 	defer func() {
 		if err != nil {
-			_ = tx.Rollback()
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				err = fmt.Errorf("%s: %w", op, rollbackErr)
+			}
 			return
 		}
 
