@@ -1,10 +1,13 @@
-.PHONY: migrate-create run stop
+.PHONY: migrate-create run stop lint
 
 run:
 	cd ../deploy && docker-compose up --build
 	
 stop:
 	cd ../deploy && docker-compose down -v
+
+lint:
+	golangci-lint run ./...
 	
 migrate-create:
 	@read -p "Enter migration name: " name; \
