@@ -23,7 +23,10 @@ func main() {
 		log.Fatalf("failed initilizate logger: %s", err.Error())
 	}
 
-	migrator.Migrate()
+	err = migrator.Migrate()
+	if err != nil {
+		logger.Error("failed to migrate database: %s", zap.Error(err))
+	}
 
 	application, err := app.New(cfg, logger)
 	if err != nil {
@@ -31,7 +34,11 @@ func main() {
 	}
 
 	go func() {
-		application.Run()
+		err = application.Run()
+		if err != nil {
+			logger.Error("failed to run application", zap.Error(err))
+			return
+		}
 	}()
 
 	stop := make(chan os.Signal, 1)
@@ -41,5 +48,9 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	application.Stop(ctx)
+	err = application.Stop(ctx)
+	if err != nil {
+		logger.Error("failed to graceful stop", zap.Error(err))
+		return
+	}
 }
