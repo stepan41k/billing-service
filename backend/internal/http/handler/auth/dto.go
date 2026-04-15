@@ -11,6 +11,15 @@ type LoginResponse struct {
 	Profile      ProfileClient `json:"profile"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type ProfileClient struct {
 	ID             int64  `json:"id"`
 	Login          string `json:"login"`

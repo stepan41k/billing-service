@@ -14,7 +14,7 @@ import (
 
 type ProfileService interface {
 	Get(ctx context.Context, login string) (*models.Client, error)
-	Create(ctx context.Context, newCLient models.CreateClient) (*models.Client, error)
+	Create(ctx context.Context, newCLient *models.CreateClient) (*models.Client, error)
 }
 
 type ProfileHandler struct {
@@ -82,7 +82,7 @@ func (ph *ProfileHandler) CreateClient(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		client, err := ph.profileService.Create(r.Context(), models.CreateClient{
+		client, err := ph.profileService.Create(r.Context(), &models.CreateClient{
 			Login:          req.Login,
 			Password:       req.Passoword,
 			IsReadOnly:     req.IsReadOnly,

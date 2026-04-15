@@ -55,7 +55,7 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 		return nil, nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
 		return nil, nil, domain.ErrInvalidCredentials
 	}
 
@@ -75,4 +75,22 @@ func (as *AuthService) Login(ctx context.Context, login, password string) (*mode
 		AccessToken:  access,
 		RefreshToken: refresh,
 	}, client, nil
+}
+
+func (as *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*models.Session, error) {
+	const op = "service.auth.RefreshToken"
+	log := as.log.With(
+		zap.String("op", op),
+	)
+
+	access, refresh, err := jwt.RefreshToken(as.cfg, refreshToken)
+	if err != nil {
+		log.Error("failed to update refresh token", zap.Error(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &models.Session{
+		AccessToken:  access,
+		RefreshToken: refresh,
+	}, nil
 }

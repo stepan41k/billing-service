@@ -14,6 +14,7 @@ import (
 
 type AuthService interface {
 	Login(ctx context.Context, login, password string) (*models.Session, *models.Client, error)
+	RefreshToken(ctx context.Context, refreshToken string) (*models.Session, error)
 }
 
 type AuthHandler struct {
@@ -72,6 +73,49 @@ func (ah *AuthHandler) Login(ctx context.Context) http.HandlerFunc {
 					PhoneNumber:    client.PhoneNumber,
 					Email:          client.PhoneNumber,
 				},
+			},
+		)
+	}
+}
+
+func (ah *AuthHandler) RefreshToken(ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req RefreshTokenRequest
+
+		// Decode request
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			ah.log.Warn("invalid JSON", zap.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// Validate
+		if err := validation.Validate.Struct(&req); err != nil {
+			ah.log.Warn("validation faild")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		token, err := ah.authService.RefreshToken(ctx, req.RefreshToken)
+		if err != nil {
+			if errors.Is(err, domain.ErrTokenExpired) {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			if errors.Is(err, domain.ErrInvalidCredentials) {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(
+			RefreshTokenResponse{
+				AccessToken:  token.AccessToken,
+				RefreshToken: token.RefreshToken,
 			},
 		)
 	}

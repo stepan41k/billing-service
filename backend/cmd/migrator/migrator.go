@@ -2,6 +2,7 @@ package migrator
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -13,7 +14,7 @@ import (
 	// "github.com/stepan41k/billing-service/internal/config"
 )
 
-func Migrate() {
+func Migrate() error {
 	cfgFireBird := config.MustLoadMigration()
 	migrationPath := os.Getenv("MIGRATIONS_PATH")
 	if migrationPath == "" {
@@ -25,13 +26,13 @@ func Migrate() {
 
 	db, err := sql.Open("firebirdsql", cfgFireBird.DSN())
 	if err != nil {
-		log.Fatalf("ERROR: Не удалось открыть базу: %v", err)
+		return fmt.Errorf("ERROR: Не удалось открыть базу: %v", err)
 	}
 	defer db.Close()
 
 	driver, err := firebird.WithInstance(db, &firebird.Config{})
 	if err != nil {
-		log.Fatalf("ERROR: Ошибка создания драйвера мигратора: %v", err)
+		return fmt.Errorf("ERROR: Ошибка создания драйвера мигратора: %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
@@ -40,16 +41,16 @@ func Migrate() {
 		driver,
 	)
 	if err != nil {
-		log.Fatalf("ERROR: Ошибка инициализации мигратора: %v", err)
+		return fmt.Errorf("ERROR: Ошибка инициализации мигратора: %v", err)
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("ERROR: Ошибка при выполнении миграции: %v", err)
+	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("ERROR: Ошибка при выполнении миграции: %v", err)
 	}
 
 	if err == migrate.ErrNoChange {
-		log.Println("INFO: Миграции не требуются (база актуальна)")
+		return fmt.Errorf("INFO: Миграции не требуются (база актуальна)")
 	} else {
-		log.Println("INFO: Миграции успешно применены!")
+		return fmt.Errorf("INFO: Миграции успешно применены!")
 	}
 }
